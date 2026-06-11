@@ -177,6 +177,10 @@ export function ProblemPage() {
       </section>
 
       <div className="mb-8">
+        <VisualExplanationCard visualType={problem.visualType} topicId={problem.topicId} />
+      </div>
+
+      <div className="mb-8">
         <LumenAssistant
           compact
           greeting="Сначала найдём, что известно. Потом поймём, что нужно найти."
@@ -201,12 +205,6 @@ export function ProblemPage() {
       {recommendation && (
         <div className="mt-8">
           <NextStepRecommendation recommendation={recommendation} />
-        </div>
-      )}
-
-      {topic && (
-        <div className="mt-8">
-          <VisualExplanationCard topicId={topic.id} />
         </div>
       )}
 

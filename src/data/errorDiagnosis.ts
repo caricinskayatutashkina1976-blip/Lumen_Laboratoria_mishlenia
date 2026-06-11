@@ -58,6 +58,17 @@ const STEP_TO_ERROR: Record<number, ErrorType> = {
   7: 'unchecked-answer',
 };
 
+export function getDiagnosisForErrorType(type: ErrorType): ErrorDiagnosis {
+  return {
+    type,
+    label: ERROR_LABELS[type],
+    lumenMessage: getErrorDiagnosisMessage(type),
+    explanation: ERROR_EXPLANATIONS[type],
+    whatToDo: ERROR_WHAT_TO_DO[type],
+    targetStepIndex: ERROR_TARGET_STEP[type],
+  };
+}
+
 export function diagnoseStepError(
   stepId: number,
   options?: { rushed?: boolean },

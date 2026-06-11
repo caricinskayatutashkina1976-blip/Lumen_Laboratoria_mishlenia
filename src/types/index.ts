@@ -45,6 +45,13 @@ export interface Lesson {
   skillTrained: string;
 }
 
+export interface StepAnswerOption {
+  text: string;
+  isCorrect: boolean;
+  feedback: string;
+  errorType: ErrorType | null;
+}
+
 export interface ProblemStep {
   id: number;
   title: string;
@@ -54,8 +61,10 @@ export interface ProblemStep {
   whyNeeded: string;
   question: string;
   lumenHint: string;
-  answerOptions?: string[];
+  answerOptions?: StepAnswerOption[];
   expectedAnswer?: string;
+  acceptedAnswers?: string[];
+  acceptedKeywords?: string[];
   completed: boolean;
 }
 

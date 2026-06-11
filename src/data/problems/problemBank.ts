@@ -1,4 +1,4 @@
-import type { ProblemDraft } from './problemBuilder';
+import type { ProblemDraft } from './problemDraft';
 import type { TrainingSkill } from '../../types';
 
 function d(partial: ProblemDraft): ProblemDraft {
@@ -17,15 +17,50 @@ export const problemDrafts: ProblemDraft[] = [
     lifeContext: 'покупки',
     correctAnswer: '357 рублей',
     commonMistake: 'Забывают сложить стоимость молока и сыра.',
-    visualType: 'text-problems',
+    visualType: 'wordProblem',
     relatedSkill: 'find-data',
     simpleExplanation: 'Сначала найди цену всех пакетов молока, потом сложи с ценой сыра.',
     about: 'Мама делает покупки в магазине.',
     known: '3 пакета по 56 руб.; сыр — 189 руб.',
     find: 'Сколько рублей потратила мама на всё?',
+    findAcceptedAnswers: [
+      'сколько всего заплатили',
+      'общая стоимость покупки',
+      'общая цена',
+      'сколько рублей потратила',
+      'стоимость всего',
+      'сколько рублей заплатили',
+    ],
+    findKeywords: ['сколько', 'рубл', 'всё', 'все', 'потратила', 'стоимость', 'цена', 'заплат'],
+    useTextFindStep: true,
     connection: 'Общая сумма — это молоко плюс сыр.',
     action: 'Умножить 3 × 56, затем прибавить 189.',
+    actionOptions: [
+      {
+        text: 'Сложение',
+        isCorrect: false,
+        feedback:
+          'Сложение подходит, когда нужно найти общее количество из частей. Здесь же одна цена повторяется несколько раз, поэтому нужно умножение.',
+        errorType: 'wrong-action',
+      },
+      {
+        text: 'Умножение и сложение',
+        isCorrect: true,
+        feedback:
+          'Верно. Одна и та же цена повторяется 3 раза, поэтому сначала умножаем, потом прибавляем цену сыра.',
+        errorType: null,
+      },
+      {
+        text: 'Деление',
+        isCorrect: false,
+        feedback:
+          'Деление помогает узнать, сколько приходится на одну часть. В этой задаче нужно найти общую стоимость, поэтому деление не подходит.',
+        errorType: 'wrong-action',
+      },
+    ],
     solution: '3 × 56 = 168; 168 + 189 = 357 рублей.',
+    solutionAcceptedAnswers: ['357', '357 рублей', '168 + 189 = 357', '168+189=357'],
+    solutionKeywords: ['357', '168', '189', 'рубл'],
     check: '357 − 189 = 168 — стоимость молока верна.',
   }),
   d({

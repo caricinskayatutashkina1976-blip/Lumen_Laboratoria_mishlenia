@@ -33,4 +33,4 @@ export function getEasyProblemForSkill(skill: string): Problem | undefined {
 
 export { problemDrafts } from './problemBank';
 export { buildProblem, buildProblems } from './problemBuilder';
-export type { ProblemDraft } from './problemBuilder';
+export type { ProblemDraft } from './problemDraft';

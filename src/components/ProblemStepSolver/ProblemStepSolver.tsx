@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import type { ErrorDiagnosis, ErrorType, ProblemStep } from '../../types';
-import { diagnoseStepError } from '../../data/errorDiagnosis';
+import type { ErrorDiagnosis, ErrorType, ProblemStep, StepAnswerOption } from '../../types';
+import { diagnoseStepError, getDiagnosisForErrorType } from '../../data/errorDiagnosis';
 import { ErrorDiagnosisCard } from '../ErrorDiagnosisCard/ErrorDiagnosisCard';
 import { getLumenMessage, selfFixSuccessMessage } from '../../data/lumenMessages';
+import { evaluateTextAnswer } from '../../utils/answerMatching';
 
 interface ProblemStepSolverProps {
   steps: ProblemStep[];
@@ -11,21 +12,6 @@ interface ProblemStepSolverProps {
   onStepError?: (errorType: ErrorType) => void;
   onSelfFix?: (errorType: ErrorType) => void;
   onHintUsed?: () => void;
-}
-
-function normalizeAnswer(value: string): string {
-  return value.trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function checkAnswer(input: string, expected?: string): boolean {
-  if (!expected) return input.trim().length >= 2;
-  const normalized = normalizeAnswer(input);
-  const expectedNorm = normalizeAnswer(expected);
-  return (
-    normalized === expectedNorm ||
-    normalized.includes(expectedNorm) ||
-    expectedNorm.includes(normalized)
-  );
 }
 
 export function ProblemStepSolver({
@@ -43,7 +29,7 @@ export function ProblemStepSolver({
   const [showSimple, setShowSimple] = useState(false);
   const [studentAnswer, setStudentAnswer] = useState('');
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [checkResult, setCheckResult] = useState<'idle' | 'correct' | 'wrong'>('idle');
+  const [checkResult, setCheckResult] = useState<'idle' | 'correct' | 'close' | 'wrong'>('idle');
   const [lumenFeedback, setLumenFeedback] = useState('');
   const [diagnosis, setDiagnosis] = useState<ErrorDiagnosis | null>(null);
   const [pendingSelfFix, setPendingSelfFix] = useState<ErrorType | null>(null);
@@ -76,41 +62,94 @@ export function ProblemStepSolver({
     return incompleteEarly && (currentStep?.id === 5 || currentStep?.id === 6);
   }
 
-  function handleCheckStep() {
-    if (!currentStep) return;
-
-    const answer = currentStep.answerOptions ? selectedOption ?? '' : studentAnswer;
-
-    if (!answer.trim()) {
-      setLumenFeedback(getLumenMessage('hint-request'));
-      return;
+  function buildDiagnosis(errorType: ErrorType): ErrorDiagnosis {
+    if (isRushedToSolution() && (currentStep?.id === 5 || currentStep?.id === 6)) {
+      return getDiagnosisForErrorType('rushed-to-solution');
     }
+    return getDiagnosisForErrorType(errorType);
+  }
 
-    const isCorrect = currentStep.answerOptions
-      ? selectedOption === currentStep.expectedAnswer ||
-        checkAnswer(selectedOption ?? '', currentStep.expectedAnswer)
-      : checkAnswer(studentAnswer, currentStep.expectedAnswer);
-
-    if (isCorrect) {
+  function handleOptionResult(selected: StepAnswerOption) {
+    if (selected.isCorrect) {
       setCheckResult('correct');
       setDiagnosis(null);
+      setLumenFeedback(selected.feedback);
 
       if (pendingSelfFix !== null) {
         onSelfFix?.(pendingSelfFix);
         setLumenFeedback(selfFixSuccessMessage);
         setPendingSelfFix(null);
-      } else {
-        setLumenFeedback(getLumenMessage('correct-answer'));
       }
-    } else {
-      setCheckResult('wrong');
-      const errorDiagnosis = diagnoseStepError(currentStep.id, {
-        rushed: isRushedToSolution(),
-      });
-      setDiagnosis(errorDiagnosis);
-      setLumenFeedback(errorDiagnosis.lumenMessage);
-      onStepError?.(errorDiagnosis.type);
+      return;
     }
+
+    setCheckResult('wrong');
+    const errorType = selected.errorType ?? diagnoseStepError(currentStep!.id).type;
+    setLumenFeedback(selected.feedback);
+    setDiagnosis(buildDiagnosis(errorType));
+    onStepError?.(errorType);
+  }
+
+  function handleTextResult(
+    result: ReturnType<typeof evaluateTextAnswer>['result'],
+    message: string,
+  ) {
+    if (result === 'exact') {
+      setCheckResult('correct');
+      setDiagnosis(null);
+      setLumenFeedback(message);
+
+      if (pendingSelfFix !== null) {
+        onSelfFix?.(pendingSelfFix);
+        setLumenFeedback(selfFixSuccessMessage);
+        setPendingSelfFix(null);
+      }
+      return;
+    }
+
+    if (result === 'close') {
+      setCheckResult('close');
+      setDiagnosis(null);
+      setLumenFeedback(message);
+      return;
+    }
+
+    setCheckResult('wrong');
+    const errorType = diagnoseStepError(currentStep!.id, {
+      rushed: isRushedToSolution(),
+    }).type;
+    setLumenFeedback(message);
+    setDiagnosis(buildDiagnosis(errorType));
+    onStepError?.(errorType);
+  }
+
+  function handleCheckStep() {
+    if (!currentStep) return;
+
+    if (currentStep.answerOptions?.length) {
+      if (!selectedOption) {
+        setLumenFeedback('Выбери один из вариантов и подумай, какой лучше подходит.');
+        return;
+      }
+
+      const selected = currentStep.answerOptions.find((option) => option.text === selectedOption);
+      if (!selected) return;
+      handleOptionResult(selected);
+      return;
+    }
+
+    if (!studentAnswer.trim()) {
+      setLumenFeedback(getLumenMessage('hint-request'));
+      return;
+    }
+
+    const evaluation = evaluateTextAnswer(
+      studentAnswer,
+      currentStep.expectedAnswer,
+      currentStep.acceptedAnswers,
+      currentStep.acceptedKeywords,
+    );
+    handleTextResult(evaluation.result, evaluation.message);
   }
 
   function handleReturnToStep() {
@@ -131,7 +170,7 @@ export function ProblemStepSolver({
   function handleExplainSimplerFromDiagnosis() {
     setShowSimple(true);
     if (diagnosis) {
-      setLumenFeedback(diagnosis.lumenMessage);
+      setLumenFeedback(diagnosis.explanation);
     }
   }
 
@@ -173,7 +212,11 @@ export function ProblemStepSolver({
   if (!currentStep) return null;
 
   const canProceed =
-    checkResult === 'correct' || (!currentStep.expectedAnswer && studentAnswer.trim().length >= 2);
+    checkResult === 'correct' ||
+    checkResult === 'close' ||
+    (!currentStep.answerOptions?.length &&
+      !currentStep.expectedAnswer &&
+      studentAnswer.trim().length >= 2);
 
   return (
     <section className="lumen-card overflow-hidden">
@@ -312,24 +355,25 @@ export function ProblemStepSolver({
                   {currentStep.question}
                 </p>
 
-                {currentStep.answerOptions ? (
+                {currentStep.answerOptions?.length ? (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {currentStep.answerOptions.map((option) => (
                       <button
-                        key={option}
+                        key={option.text}
                         type="button"
                         onClick={() => {
-                          setSelectedOption(option);
+                          setSelectedOption(option.text);
                           setCheckResult('idle');
                           setDiagnosis(null);
+                          setLumenFeedback('');
                         }}
                         className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
-                          selectedOption === option
+                          selectedOption === option.text
                             ? 'border-lumen-blue bg-lumen-blue-soft text-lumen-blue'
                             : 'border-lumen-silver-light bg-lumen-bg text-lumen-graphite-light hover:border-lumen-teal/40'
                         }`}
                       >
-                        {option}
+                        {option.text}
                       </button>
                     ))}
                   </div>
@@ -341,6 +385,7 @@ export function ProblemStepSolver({
                       setStudentAnswer(e.target.value);
                       setCheckResult('idle');
                       setDiagnosis(null);
+                      setLumenFeedback('');
                     }}
                     placeholder="Запиши свой ответ..."
                     className="mt-3 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20"
@@ -362,7 +407,7 @@ export function ProblemStepSolver({
               {lumenFeedback && (
                 <div
                   className={`rounded-xl border px-4 py-3 ${
-                    checkResult === 'correct'
+                    checkResult === 'correct' || checkResult === 'close'
                       ? 'border-lumen-teal/30 bg-lumen-teal-soft/40'
                       : checkResult === 'wrong'
                         ? 'border-lumen-blue/20 bg-lumen-blue-soft/25'
@@ -386,7 +431,7 @@ export function ProblemStepSolver({
                 />
               )}
 
-              {checkResult === 'correct' && (
+              {(checkResult === 'correct' || checkResult === 'close') && (
                 <div className="rounded-xl border border-lumen-teal/30 bg-lumen-teal-soft/30 px-4 py-3">
                   <p className="text-sm text-lumen-graphite-light">{currentStep.content}</p>
                 </div>

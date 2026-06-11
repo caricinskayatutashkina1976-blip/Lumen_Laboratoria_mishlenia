@@ -1,4 +1,4 @@
-import type { ProblemStep } from '../types';
+import type { ProblemStep, StepAnswerOption } from '../types';
 
 const STEP_TITLES = [
   'О чём задача?',
@@ -37,8 +37,15 @@ export interface StepData {
   whyNeeded?: string;
   question?: string;
   lumenHint?: string;
-  answerOptions?: string[];
+  answerOptions?: StepAnswerOption[];
   expectedAnswer?: string;
+  acceptedAnswers?: string[];
+  acceptedKeywords?: string[];
+}
+
+function getExpectedAnswer(step: StepData): string | undefined {
+  if (step.expectedAnswer) return step.expectedAnswer;
+  return step.answerOptions?.find((option) => option.isCorrect)?.text;
 }
 
 export function buildProblemSteps(steps: StepData[]): ProblemStep[] {
@@ -52,7 +59,9 @@ export function buildProblemSteps(steps: StepData[]): ProblemStep[] {
     question: step.question ?? DEFAULT_QUESTIONS[index] ?? 'Что ты понял на этом шаге?',
     lumenHint: step.lumenHint ?? step.hint,
     answerOptions: step.answerOptions,
-    expectedAnswer: step.expectedAnswer,
+    expectedAnswer: getExpectedAnswer(step),
+    acceptedAnswers: step.acceptedAnswers,
+    acceptedKeywords: step.acceptedKeywords,
     completed: false,
   }));
 }

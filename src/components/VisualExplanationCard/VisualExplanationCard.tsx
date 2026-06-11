@@ -1,26 +1,64 @@
 import type { ReactNode } from 'react';
 
 interface VisualExplanationCardProps {
-  topicId: string;
+  topicId?: string;
+  visualType?: string;
   className?: string;
 }
 
-function TextProblemVisual() {
+const VISUAL_TYPE_ALIASES: Record<string, string> = {
+  'text-problems': 'wordProblem',
+  wordProblem: 'wordProblem',
+  fractions: 'fractions',
+  percents: 'percent',
+  percent: 'percent',
+  motion: 'movement',
+  movement: 'movement',
+  'area-perimeter': 'area',
+  area: 'area',
+  equations: 'equation',
+  equation: 'equation',
+  parts: 'parts',
+  divisibility: 'divisibility',
+  units: 'measurement',
+  measurement: 'measurement',
+  comparison: 'comparison',
+};
+
+const VISUAL_TITLES: Record<string, string> = {
+  wordProblem: 'Схема текстовой задачи',
+  fractions: 'Схема дроби',
+  percent: 'Схема процентов',
+  movement: 'Схема движения',
+  area: 'Площадь и периметр',
+  equation: 'Идея равенства',
+  parts: 'Схема частей',
+  divisibility: 'Делимость числа',
+  measurement: 'Перевод единиц',
+  comparison: 'Сравнение величин',
+};
+
+function resolveVisualType(visualType?: string, topicId?: string): string {
+  const raw = visualType ?? topicId ?? 'wordProblem';
+  return VISUAL_TYPE_ALIASES[raw] ?? raw;
+}
+
+function WordProblemVisual() {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <div className="rounded-xl border border-lumen-blue/25 bg-lumen-blue-soft/40 p-4 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-lumen-blue">Известно</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-lumen-blue">Что известно</p>
         <p className="mt-2 text-sm text-lumen-graphite-light">Числа и факты из условия</p>
       </div>
       <div className="flex items-center justify-center">
-        <div className="h-0.5 w-full bg-lumen-teal/40 sm:h-full sm:w-0.5" />
+        <span className="text-2xl font-light text-lumen-teal">→</span>
       </div>
       <div className="rounded-xl border border-lumen-teal/25 bg-lumen-teal-soft/40 p-4 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider text-lumen-teal">Найти</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-lumen-teal">Что найти</p>
         <p className="mt-2 text-sm text-lumen-graphite-light">Главный вопрос задачи</p>
       </div>
       <div className="rounded-xl border border-lumen-graphite/15 bg-lumen-bg p-4 text-center sm:col-span-3">
-        <p className="text-xs font-semibold uppercase tracking-wider text-lumen-graphite">Действие</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-lumen-graphite">Какое действие поможет</p>
         <p className="mt-2 text-sm text-lumen-graphite-light">
           Связь между данными → выбор действия → ответ
         </p>
@@ -33,21 +71,28 @@ function FractionVisual() {
   const parts = 8;
   const filled = 3;
   return (
-    <div className="space-y-3">
-      <p className="text-center text-sm font-medium text-lumen-graphite">3/8 — три части из восьми</p>
-      <div className="mx-auto flex h-16 max-w-md overflow-hidden rounded-xl border-2 border-lumen-graphite/20">
-        {Array.from({ length: parts }).map((_, i) => (
-          <div
-            key={i}
-            className={`flex-1 border-r border-lumen-graphite/10 last:border-r-0 ${
-              i < filled ? 'bg-lumen-teal/50' : 'bg-lumen-silver-light/60'
-            }`}
-          />
-        ))}
+    <div className="space-y-4">
+      <p className="text-center text-sm font-medium text-lumen-graphite">3 из 8 частей</p>
+      <div className="mx-auto max-w-md">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wider text-lumen-silver">
+          Целое
+        </p>
+        <div className="flex h-16 overflow-hidden rounded-xl border-2 border-lumen-graphite/20">
+          {Array.from({ length: parts }).map((_, i) => (
+            <div
+              key={i}
+              className={`flex flex-1 items-end justify-center border-r border-lumen-graphite/10 pb-1 text-[10px] font-medium last:border-r-0 ${
+                i < filled ? 'bg-lumen-teal/45 text-lumen-graphite' : 'bg-lumen-silver-light/60 text-lumen-silver'
+              }`}
+            >
+              {i < filled ? 'часть' : ''}
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="flex justify-between text-xs text-lumen-silver">
+      <div className="flex flex-wrap justify-between gap-2 text-sm font-medium text-lumen-graphite-light">
         <span>Целое разделено на {parts} частей</span>
-        <span>Взяли {filled} части</span>
+        <span className="text-lumen-teal">Сколько взяли: {filled} части</span>
       </div>
     </div>
   );
@@ -56,45 +101,44 @@ function FractionVisual() {
 function PercentVisual() {
   const value = 40;
   return (
-    <div className="space-y-3">
-      <p className="text-center text-sm font-medium text-lumen-graphite">40% — 40 из 100</p>
-      <div className="relative mx-auto h-8 max-w-md overflow-hidden rounded-full bg-lumen-silver-light">
+    <div className="space-y-4">
+      <div className="relative mx-auto h-10 max-w-md overflow-hidden rounded-full bg-lumen-silver-light">
         <div
           className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-lumen-blue to-lumen-teal"
           style={{ width: `${value}%` }}
         />
       </div>
-      <div className="flex justify-between text-xs font-medium text-lumen-silver">
-        <span>0</span>
-        <span className="text-lumen-teal">{value}%</span>
-        <span>100</span>
+      <div className="flex justify-between text-sm font-medium text-lumen-graphite-light">
+        <span>0%</span>
+        <span className="text-lumen-teal">Часть — {value}%</span>
+        <span>100% — всё</span>
       </div>
     </div>
   );
 }
 
-function MotionVisual() {
+function MovementVisual() {
   return (
-    <div className="space-y-4">
-      <div className="relative mx-auto max-w-md">
+    <div className="space-y-5">
+      <div className="relative mx-auto max-w-md px-4">
         <div className="h-1.5 rounded-full bg-lumen-silver-light" />
-        <div className="absolute -top-3 left-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-lumen-blue bg-lumen-surface text-xs font-bold text-lumen-blue">
+        <div className="absolute -top-3 left-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-lumen-blue bg-lumen-surface text-sm font-bold text-lumen-blue">
           A
         </div>
-        <div className="absolute -top-3 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-lumen-teal bg-lumen-surface text-xs font-bold text-lumen-teal">
+        <div className="absolute -top-3 right-4 flex h-8 w-8 items-center justify-center rounded-full border-2 border-lumen-teal bg-lumen-surface text-sm font-bold text-lumen-teal">
           B
         </div>
-        <div className="absolute -top-1 left-1/2 -translate-x-1/2 text-lg text-lumen-blue">→</div>
+        <div className="absolute -top-1 left-1/2 -translate-x-1/2 text-xl text-lumen-blue">→</div>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-lg bg-lumen-blue-soft/50 px-2 py-2">
-          <p className="text-xs font-semibold text-lumen-blue">Скорость</p>
+        <div className="rounded-xl bg-lumen-blue-soft/50 px-2 py-3">
+          <p className="text-sm font-semibold text-lumen-blue">Скорость</p>
         </div>
-        <div className="rounded-lg bg-lumen-bg px-2 py-2">
-          <p className="text-xs font-semibold text-lumen-graphite-light">× Время</p>
+        <div className="rounded-xl bg-lumen-bg px-2 py-3">
+          <p className="text-sm font-semibold text-lumen-graphite-light">× Время</p>
         </div>
-        <div className="rounded-lg bg-lumen-teal-soft/50 px-2 py-2">
-          <p className="text-xs font-semibold text-lumen-teal">Расстояние</p>
+        <div className="rounded-xl bg-lumen-teal-soft/50 px-2 py-3">
+          <p className="text-sm font-semibold text-lumen-teal">Расстояние</p>
         </div>
       </div>
     </div>
@@ -103,17 +147,20 @@ function MotionVisual() {
 
 function AreaVisual() {
   return (
-    <div className="mx-auto max-w-xs space-y-2">
-      <div className="relative mx-auto h-28 w-44 border-2 border-lumen-graphite/25 bg-lumen-teal-soft/20">
-        <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-xs font-medium text-lumen-blue">
-          длина (a)
+    <div className="mx-auto max-w-xs space-y-3">
+      <div className="relative mx-auto h-32 w-48 border-2 border-lumen-graphite/25 bg-lumen-teal-soft/20">
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-sm font-medium text-lumen-blue">
+          длина
         </span>
-        <span className="absolute -right-10 top-1/2 -translate-y-1/2 text-xs font-medium text-lumen-teal">
-          ширина (b)
+        <span className="absolute -right-14 top-1/2 -translate-y-1/2 text-sm font-medium text-lumen-teal">
+          ширина
+        </span>
+        <span className="absolute inset-0 flex items-center justify-center text-sm font-semibold text-lumen-graphite/70">
+          площадь
         </span>
       </div>
       <p className="text-center text-sm text-lumen-graphite-light">
-        Площадь = a × b &nbsp;|&nbsp; Периметр = обход по краю
+        Площадь = длина × ширина
       </p>
     </div>
   );
@@ -121,58 +168,64 @@ function AreaVisual() {
 
 function EquationVisual() {
   return (
-    <div className="mx-auto max-w-sm space-y-3">
+    <div className="mx-auto max-w-sm space-y-4">
       <div className="flex items-end justify-center gap-4">
-        <div className="flex flex-col items-center gap-1">
-          <div className="h-10 w-16 rounded-lg border-2 border-lumen-blue/30 bg-lumen-blue-soft/40" />
-          <span className="text-xs text-lumen-blue">x + 5</span>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-12 w-20 rounded-xl border-2 border-lumen-blue/30 bg-lumen-blue-soft/40" />
+          <span className="text-sm font-medium text-lumen-blue">левая часть</span>
         </div>
-        <span className="pb-2 text-2xl font-light text-lumen-graphite">=</span>
-        <div className="flex flex-col items-center gap-1">
-          <div className="h-10 w-16 rounded-lg border-2 border-lumen-teal/30 bg-lumen-teal-soft/40" />
-          <span className="text-xs text-lumen-teal">12</span>
+        <span className="pb-3 text-3xl font-light text-lumen-graphite">=</span>
+        <div className="flex flex-col items-center gap-2">
+          <div className="h-12 w-20 rounded-xl border-2 border-lumen-teal/30 bg-lumen-teal-soft/40" />
+          <span className="text-sm font-medium text-lumen-teal">правая часть</span>
         </div>
       </div>
-      <div className="mx-auto h-1 w-48 rounded-full bg-lumen-graphite/30" />
-      <p className="text-center text-xs text-lumen-silver">Весы в равновесии — обе стороны равны</p>
+      <div className="mx-auto h-1.5 w-52 rounded-full bg-lumen-graphite/30" />
+      <p className="text-center text-sm text-lumen-graphite-light">
+        Обе стороны равны — как весы в равновесии
+      </p>
     </div>
   );
 }
 
 function PartsVisual() {
   return (
-    <div className="space-y-3">
-      <p className="text-center text-sm font-medium text-lumen-graphite">Целое → равные части</p>
-      <div className="mx-auto flex h-12 max-w-md overflow-hidden rounded-xl border-2 border-lumen-graphite/20">
+    <div className="space-y-4">
+      <p className="text-center text-sm font-medium text-lumen-graphite">Целое разделено на равные части</p>
+      <div className="mx-auto flex h-14 max-w-md overflow-hidden rounded-xl border-2 border-lumen-graphite/20">
         {[1, 2, 3, 4].map((n) => (
           <div
             key={n}
-            className={`flex flex-1 items-center justify-center border-r border-lumen-graphite/10 text-xs font-medium last:border-r-0 ${
+            className={`flex flex-1 flex-col items-center justify-center border-r border-lumen-graphite/10 text-xs font-semibold last:border-r-0 ${
               n <= 2 ? 'bg-lumen-teal/40 text-lumen-graphite' : 'bg-lumen-silver-light/50 text-lumen-silver'
             }`}
           >
-            1/4
+            <span>1 часть</span>
           </div>
         ))}
       </div>
-      <p className="text-center text-xs text-lumen-graphite-light">2 части из 4 = половина</p>
+      <div className="flex flex-wrap justify-center gap-4 text-sm text-lumen-graphite-light">
+        <span>Одна часть</span>
+        <span>Несколько частей</span>
+        <span className="font-medium text-lumen-teal">Всё вместе = целое</span>
+      </div>
     </div>
   );
 }
 
-function UnitsVisual() {
+function MeasurementVisual() {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       {[
-        { from: '1 км', to: '1000 м', label: 'Длина' },
+        { from: '1 м', to: '100 см', label: 'Длина' },
         { from: '1 кг', to: '1000 г', label: 'Масса' },
         { from: '1 ч', to: '60 мин', label: 'Время' },
       ].map((item) => (
-        <div key={item.label} className="rounded-xl border border-lumen-silver-light bg-lumen-bg p-3 text-center">
-          <p className="text-xs font-semibold uppercase text-lumen-teal">{item.label}</p>
-          <p className="mt-2 text-sm font-medium text-lumen-graphite">{item.from}</p>
-          <p className="text-xs text-lumen-silver">↓</p>
-          <p className="text-sm font-medium text-lumen-blue">{item.to}</p>
+        <div key={item.label} className="rounded-xl border border-lumen-silver-light bg-lumen-bg p-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-lumen-teal">{item.label}</p>
+          <p className="mt-3 text-base font-semibold text-lumen-graphite">{item.from}</p>
+          <p className="my-2 text-sm text-lumen-silver">↓</p>
+          <p className="text-base font-semibold text-lumen-blue">{item.to}</p>
         </div>
       ))}
     </div>
@@ -181,15 +234,15 @@ function UnitsVisual() {
 
 function ComparisonVisual() {
   return (
-    <div className="flex items-center justify-center gap-6">
-      <div className="rounded-xl border border-lumen-blue/25 bg-lumen-blue-soft/40 px-6 py-4 text-center">
-        <p className="text-2xl font-bold text-lumen-blue">5</p>
-        <p className="mt-1 text-xs text-lumen-silver">первое</p>
+    <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+      <div className="rounded-xl border border-lumen-blue/25 bg-lumen-blue-soft/40 px-8 py-5 text-center">
+        <p className="text-3xl font-bold text-lumen-blue">5</p>
+        <p className="mt-2 text-sm font-medium text-lumen-silver">первая величина</p>
       </div>
-      <span className="text-3xl font-light text-lumen-teal">&gt;</span>
-      <div className="rounded-xl border border-lumen-silver-light bg-lumen-bg px-6 py-4 text-center">
-        <p className="text-2xl font-bold text-lumen-graphite-light">3</p>
-        <p className="mt-1 text-xs text-lumen-silver">второе</p>
+      <span className="text-4xl font-light text-lumen-teal">&gt;</span>
+      <div className="rounded-xl border border-lumen-silver-light bg-lumen-bg px-8 py-5 text-center">
+        <p className="text-3xl font-bold text-lumen-graphite-light">3</p>
+        <p className="mt-2 text-sm font-medium text-lumen-silver">вторая величина</p>
       </div>
     </div>
   );
@@ -197,41 +250,47 @@ function ComparisonVisual() {
 
 function DivisibilityVisual() {
   return (
-    <div className="grid gap-3 sm:grid-cols-3">
-      {[
-        { num: '24', rule: 'Делится на 2', ok: true },
-        { num: '35', rule: 'Делится на 5', ok: true },
-        { num: '17', rule: 'Не делится на 5', ok: false },
-      ].map((item) => (
-        <div
-          key={item.num}
-          className={`rounded-xl border p-3 text-center ${
-            item.ok ? 'border-lumen-teal/25 bg-lumen-teal-soft/30' : 'border-lumen-silver-light bg-lumen-bg'
-          }`}
-        >
-          <p className="text-xl font-bold text-lumen-graphite">{item.num}</p>
-          <p className="mt-1 text-xs text-lumen-graphite-light">{item.rule}</p>
-        </div>
-      ))}
+    <div className="mx-auto max-w-md space-y-4">
+      <div className="rounded-xl border border-lumen-blue/20 bg-lumen-blue-soft/30 px-5 py-4 text-center">
+        <p className="text-3xl font-bold text-lumen-graphite">24</p>
+        <p className="mt-2 text-sm text-lumen-graphite-light">Число делится на равные группы</p>
+      </div>
+      <div className="grid grid-cols-4 gap-2">
+        {[6, 6, 6, 6].map((value, index) => (
+          <div
+            key={index}
+            className="rounded-lg border border-lumen-teal/25 bg-lumen-teal-soft/35 py-3 text-center text-sm font-semibold text-lumen-graphite"
+          >
+            {value}
+          </div>
+        ))}
+      </div>
+      <p className="text-center text-sm font-medium text-lumen-teal">Остатка нет — число делится</p>
     </div>
   );
 }
 
 const visualMap: Record<string, () => ReactNode> = {
-  'text-problems': TextProblemVisual,
+  wordProblem: WordProblemVisual,
   fractions: FractionVisual,
-  percents: PercentVisual,
-  motion: MotionVisual,
-  'area-perimeter': AreaVisual,
-  equations: EquationVisual,
+  percent: PercentVisual,
+  movement: MovementVisual,
+  area: AreaVisual,
+  equation: EquationVisual,
   parts: PartsVisual,
   divisibility: DivisibilityVisual,
-  units: UnitsVisual,
+  measurement: MeasurementVisual,
   comparison: ComparisonVisual,
 };
 
-export function VisualExplanationCard({ topicId, className = '' }: VisualExplanationCardProps) {
-  const Visual = visualMap[topicId] ?? TextProblemVisual;
+export function VisualExplanationCard({
+  topicId,
+  visualType,
+  className = '',
+}: VisualExplanationCardProps) {
+  const resolvedType = resolveVisualType(visualType, topicId);
+  const Visual = visualMap[resolvedType] ?? WordProblemVisual;
+  const title = VISUAL_TITLES[resolvedType] ?? 'Схема задачи';
 
   return (
     <section className={`lumen-card overflow-hidden ${className}`}>
@@ -241,7 +300,7 @@ export function VisualExplanationCard({ topicId, className = '' }: VisualExplana
           Покажи наглядно
         </p>
         <h3 className="mt-1 text-base font-semibold text-lumen-graphite sm:text-lg">
-          Схема темы
+          {title}
         </h3>
         <div className="mt-5">{Visual()}</div>
       </div>

@@ -2,33 +2,21 @@ import type {
   Difficulty,
   Problem,
   ProblemDifficultyLevel,
-  TrainingSkill,
 } from '../../types';
 import { buildProblemSteps, type StepData } from '../problemSteps';
-
-export interface ProblemDraft {
-  id: string;
-  topicId: string;
-  title: string;
-  level: ProblemDifficultyLevel;
-  problemText: string;
-  lifeContext: string;
-  correctAnswer: string;
-  commonMistake: string;
-  visualType: string;
-  relatedSkill: TrainingSkill;
-  simpleExplanation: string;
-  about?: string;
-  known?: string;
-  find?: string;
-  findWrong?: [string, string];
-  connection?: string;
-  action?: string;
-  actionWrong?: [string, string];
-  solution?: string;
-  check?: string;
-  hints?: string[];
-}
+import type { ProblemDraft } from './problemDraft';
+import {
+  buildAboutOptions,
+  buildActionOptions,
+  buildCheckOptions,
+  buildConnectionOptions,
+  buildFindAcceptedAnswers,
+  buildFindKeywords,
+  buildFindOptions,
+  buildKnownOptions,
+  buildSolutionAcceptedAnswers,
+  buildSolutionKeywords,
+} from './stepOptions';
 
 const LEVEL_MAP: Record<ProblemDifficultyLevel, Difficulty> = {
   easy: 'лёгкий',
@@ -37,18 +25,10 @@ const LEVEL_MAP: Record<ProblemDifficultyLevel, Difficulty> = {
 };
 
 const STEP_WRONG: Record<number, [string, string]> = {
-  0: ['Не понял условие', 'Сразу начать считать'],
-  1: ['Только одно число', 'Числа не важны'],
   2: ['Количество предметов', 'Цена одного предмета'],
   3: ['Числа не связаны', 'Нужно угадывать'],
   4: ['Только сложение', 'Только деление'],
-  5: ['Ответ наугад', 'Пропустить счёт'],
-  6: ['Не проверять', 'Ответ точно неверный'],
 };
-
-function opts(correct: string, wrong: [string, string]): string[] {
-  return [correct, wrong[0], wrong[1]];
-}
 
 export function buildProblem(draft: ProblemDraft): Problem {
   const about = draft.about ?? draft.lifeContext;
@@ -63,54 +43,66 @@ export function buildProblem(draft: ProblemDraft): Problem {
   const check =
     draft.check ?? 'Ответ похож на правду и проверяется обратным действием.';
 
+  const findAcceptedAnswers = buildFindAcceptedAnswers(draft, find);
+  const findKeywords = buildFindKeywords(draft);
+  const solutionAcceptedAnswers = buildSolutionAcceptedAnswers(draft, solution);
+  const solutionKeywords = buildSolutionKeywords(draft, solution);
+  const useTextFind = draft.useTextFindStep ?? Boolean(draft.findAcceptedAnswers?.length);
+
   const stepData: StepData[] = [
     {
       hint: 'Кто действует и что происходит?',
       content: about,
       simpleExplanation: draft.simpleExplanation,
-      answerOptions: opts('Понял, о чём задача', ['Не понял условие', 'Сразу начать считать']),
-      expectedAnswer: 'Понял, о чём задача',
+      answerOptions: buildAboutOptions(draft),
     },
     {
       hint: 'Выпиши все числа и факты.',
       content: known,
       simpleExplanation: 'Сначала собери все данные из условия.',
-      answerOptions: opts('Все нужные данные записаны', ['Только одно число', 'Числа не важны']),
-      expectedAnswer: 'Все нужные данные записаны',
+      answerOptions: buildKnownOptions(),
     },
-    {
-      hint: 'Найди главный вопрос в конце.',
-      content: find,
-      simpleExplanation: 'Вопрос задачи показывает, что искать.',
-      answerOptions: opts(find, findWrong),
-      expectedAnswer: find,
-    },
+    useTextFind
+      ? {
+          hint: 'Найди главный вопрос в конце.',
+          content: find,
+          simpleExplanation: 'Вопрос задачи показывает, что искать.',
+          question: 'Что нужно найти? Сформулируй своими словами.',
+          expectedAnswer: find,
+          acceptedAnswers: findAcceptedAnswers,
+          acceptedKeywords: findKeywords,
+        }
+      : {
+          hint: 'Найди главный вопрос в конце.',
+          content: find,
+          simpleExplanation: 'Вопрос задачи показывает, что искать.',
+          answerOptions: buildFindOptions(find, findWrong),
+        },
     {
       hint: 'Как связаны данные?',
       content: connection,
       simpleExplanation: 'Связь подсказывает, что делать дальше.',
-      answerOptions: opts('Данные связаны логически', STEP_WRONG[3]),
-      expectedAnswer: 'Данные связаны логически',
+      answerOptions: buildConnectionOptions(connection),
     },
     {
       hint: 'Выбери действие по смыслу.',
       content: action,
       simpleExplanation: 'Действие следует из связи между числами.',
-      answerOptions: opts(action, actionWrong),
-      expectedAnswer: action,
+      answerOptions: buildActionOptions(draft, action, actionWrong),
     },
     {
       hint: 'Посчитай по шагам.',
       content: solution,
       simpleExplanation: draft.simpleExplanation,
-      expectedAnswer: solution.replace(/[^\d/]/g, '').slice(0, 6) || solution.slice(0, 8),
+      expectedAnswer: solution,
+      acceptedAnswers: solutionAcceptedAnswers,
+      acceptedKeywords: solutionKeywords,
     },
     {
       hint: 'Проверь ответ.',
       content: check,
       simpleExplanation: 'Ответ должен иметь смысл в задаче.',
-      answerOptions: opts('Да, ответ похож на правду', STEP_WRONG[6]),
-      expectedAnswer: 'Да, ответ похож на правду',
+      answerOptions: buildCheckOptions(check),
     },
   ];
 
