@@ -18,11 +18,8 @@ export function HomePage() {
       <section className="mb-10">
         <div className="lumen-card overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-lumen-teal via-lumen-blue to-lumen-teal" />
-          <div className="grid gap-8 p-6 sm:grid-cols-[auto_1fr] sm:p-10">
-            <div className="flex justify-center sm:justify-start">
-              <LumenAvatar size="xl" />
-            </div>
-            <div className="text-center sm:text-left">
+          <div className="grid items-center gap-8 p-6 sm:p-10 lg:grid-cols-2 lg:gap-12">
+            <div className="order-2 text-center lg:order-1 lg:text-left">
               <p className="lumen-section-label">Образовательная платформа</p>
               <h1 className="mt-2 text-3xl font-bold tracking-tight text-lumen-graphite sm:text-4xl lg:text-5xl">
                 Люмен. Лаборатория решений
@@ -30,24 +27,48 @@ export function HomePage() {
               <p className="mt-3 text-lg text-lumen-blue sm:text-xl">
                 Понять, а не заучить
               </p>
-              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-lumen-graphite-light sm:mx-0 sm:text-base">
-                AI-наставник помогает разбирать сложные темы простыми словами — через
-                вопросы, схемы и пошаговое рассуждение.
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-lumen-graphite-light sm:text-base lg:mx-0">
+                Люмен объясняет сложные темы простыми словами, показывает схемы и
+                помогает разбирать задачи по шагам.
               </p>
-              <p className="mt-4 text-sm italic text-lumen-silver">
-                «Привет. Я Люмен. Давай разбираться спокойно и по шагам.»
-              </p>
+
+              <blockquote className="mx-auto mt-6 max-w-xl border-l-4 border-lumen-teal bg-lumen-teal-soft/50 px-5 py-4 text-left lg:mx-0">
+                <p className="text-base font-medium leading-relaxed text-lumen-graphite sm:text-lg">
+                  «Привет. Я Люмен. Давай разбираться спокойно и по шагам.»
+                </p>
+              </blockquote>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+                <Link to="/map" className="lumen-btn-primary text-center">
+                  Начать обучение
+                </Link>
+                <Link to="/topics" className="lumen-btn-accent text-center">
+                  Я не понял тему
+                </Link>
+              </div>
+            </div>
+
+            <div className="order-1 flex justify-center lg:order-2 lg:justify-end">
+              <LumenAvatar
+                size="hero"
+                showLabel={false}
+                className="drop-shadow-[0_16px_48px_rgba(30,41,59,0.12)]"
+              />
             </div>
           </div>
         </div>
       </section>
 
-      <div className="mb-10">
+      <div className="mb-8">
         <TodayMission />
       </div>
 
       <div className="mb-10">
-        <LumenAssistant greeting="Привет. Я Люмен. Давай разбираться спокойно и по шагам." />
+        <LumenAssistant
+          greeting="Выбери, чем помочь — объясню проще, покажу пример или разберём по шагам."
+          compact
+          showAvatarLabel={false}
+        />
       </div>
 
       <section className="mb-10">

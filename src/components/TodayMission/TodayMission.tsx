@@ -8,46 +8,44 @@ export function TodayMission() {
   const isDone = progress.completedMissions.includes(mission.id);
 
   return (
-    <section className="lumen-card overflow-hidden border-lumen-teal/25 bg-gradient-to-br from-lumen-surface to-lumen-teal-soft/20">
-      <div className="absolute inset-x-0 top-0 h-1 bg-lumen-teal" />
-      <div className="relative p-6 sm:p-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+    <section className="lumen-card overflow-hidden border-lumen-teal/25 bg-gradient-to-r from-lumen-surface to-lumen-teal-soft/20">
+      <div className="absolute inset-y-0 left-0 w-1 bg-lumen-teal" />
+      <div className="relative flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">
               Сегодняшняя миссия
             </p>
-            <h2 className="mt-2 text-lg font-semibold text-lumen-graphite sm:text-xl">
-              {mission.title}
-            </h2>
-            <p className="mt-2 text-sm text-lumen-graphite-light">
-              {mission.description}
-            </p>
             {isDone && (
-              <p className="mt-3 text-sm font-medium text-lumen-teal">
-                Миссия выполнена
-              </p>
+              <span className="text-xs font-medium text-lumen-teal">Выполнена</span>
             )}
           </div>
+          <h2 className="mt-1 text-base font-semibold text-lumen-graphite sm:text-lg">
+            {mission.title}
+          </h2>
+          <p className="mt-0.5 line-clamp-1 text-sm text-lumen-graphite-light">
+            {mission.description}
+          </p>
+        </div>
 
-          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
-            {mission.topicId && (
-              <Link
-                to={`/lesson/${mission.topicId}`}
-                className="lumen-btn-primary text-center"
-              >
-                {isDone ? 'Повторить' : 'Начать миссию'}
-              </Link>
-            )}
-            {!isDone && (
-              <button
-                type="button"
-                onClick={() => completeMission(mission.id)}
-                className="lumen-btn-secondary text-center text-xs"
-              >
-                Отметить выполненной
-              </button>
-            )}
-          </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {mission.topicId && (
+            <Link
+              to={`/lesson/${mission.topicId}`}
+              className="lumen-btn-primary whitespace-nowrap px-4 py-2.5 text-sm"
+            >
+              {isDone ? 'Повторить' : 'Начать миссию'}
+            </Link>
+          )}
+          {!isDone && (
+            <button
+              type="button"
+              onClick={() => completeMission(mission.id)}
+              className="lumen-btn-secondary whitespace-nowrap px-3 py-2 text-xs"
+            >
+              Готово
+            </button>
+          )}
         </div>
       </div>
     </section>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { LUMEN_IMAGE_HINT, LUMEN_IMAGE_PATH } from '../../constants/lumen';
 
-type LumenAvatarSize = 'sm' | 'md' | 'lg' | 'xl';
+type LumenAvatarSize = 'sm' | 'md' | 'lg' | 'xl' | 'hero';
 
 interface LumenAvatarProps {
   size?: LumenAvatarSize;
@@ -14,6 +14,10 @@ const sizeClasses: Record<LumenAvatarSize, { box: string; label: string }> = {
   md: { box: 'h-24 w-24 sm:h-28 sm:w-28', label: 'text-xs' },
   lg: { box: 'h-32 w-32 sm:h-36 sm:w-36', label: 'text-xs' },
   xl: { box: 'h-40 w-40 sm:h-48 sm:w-48', label: 'text-sm' },
+  hero: {
+    box: 'h-56 w-56 sm:h-64 sm:w-64 lg:h-80 lg:w-80 xl:h-96 xl:w-96',
+    label: 'text-sm',
+  },
 };
 
 export function LumenAvatar({
@@ -27,7 +31,11 @@ export function LumenAvatar({
   return (
     <div className={`flex flex-col items-center ${className}`}>
       <div
-        className={`relative overflow-hidden rounded-2xl border border-lumen-silver-light bg-gradient-to-br from-lumen-graphite to-lumen-graphite-light shadow-[0_8px_32px_rgba(30,41,59,0.15)] ${sizes.box}`}
+        className={`relative overflow-hidden border border-lumen-silver-light bg-gradient-to-br from-lumen-graphite to-lumen-graphite-light ${
+          size === 'hero'
+            ? 'rounded-3xl shadow-[0_20px_60px_rgba(30,41,59,0.18)]'
+            : 'rounded-2xl shadow-[0_8px_32px_rgba(30,41,59,0.15)]'
+        } ${sizes.box}`}
       >
         {!imageError ? (
           <img
@@ -46,7 +54,7 @@ export function LumenAvatar({
             </p>
           </div>
         )}
-        <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10" />
+        <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10 rounded-[inherit]" />
       </div>
       {showLabel && (
         <p className={`mt-2 text-center font-medium uppercase tracking-wider text-lumen-teal ${sizes.label}`}>
