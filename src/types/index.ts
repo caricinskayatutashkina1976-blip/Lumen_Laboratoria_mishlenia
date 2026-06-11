@@ -19,13 +19,29 @@ export interface Achievement {
   category: string;
 }
 
+export interface LessonExplanation {
+  shortExplanation: string;
+  lifeExample: string;
+  miniExample: string;
+  commonMistakes: string;
+  howToRemember: string;
+  selfCheck: string[];
+}
+
+export interface WhyNeededDetails {
+  lifeUse: string[];
+  futureConnections: string[];
+}
+
 export interface Lesson {
   id: string;
   topicId: string;
   title: string;
   summary: string;
   content: string[];
+  explanation: LessonExplanation;
   whyNeeded: string[];
+  whyNeededDetails: WhyNeededDetails;
   skillTrained: string;
 }
 
@@ -35,6 +51,11 @@ export interface ProblemStep {
   hint: string;
   content: string;
   simpleExplanation: string;
+  whyNeeded: string;
+  question: string;
+  lumenHint: string;
+  answerOptions?: string[];
+  expectedAnswer?: string;
   completed: boolean;
 }
 
@@ -64,6 +85,15 @@ export interface Mission {
   description: string;
   topicId?: string;
 }
+
+export type LumenSituation =
+  | 'topic-start'
+  | 'not-understood'
+  | 'wrong-answer'
+  | 'correct-answer'
+  | 'hint-request'
+  | 'step-complete'
+  | 'problem-complete';
 
 export type LumenAction =
   | 'explain-simpler'

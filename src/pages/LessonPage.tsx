@@ -1,10 +1,13 @@
 import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { LessonExplanationSections } from '../components/LessonExplanationSections/LessonExplanationSections';
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
+import { VisualExplanationCard } from '../components/VisualExplanationCard/VisualExplanationCard';
 import { WhyNeedItCard } from '../components/WhyNeedItCard/WhyNeedItCard';
 import { useProgress } from '../context/ProgressContext';
 import { getLessonByTopicId, getSkillByTopicId } from '../data/lessons';
+import { getLumenMessage } from '../data/lumenMessages';
 import { getProblemsByTopicId } from '../data/problems';
 import { getTopicBySlug } from '../data/topics';
 
@@ -59,7 +62,7 @@ export function LessonPage() {
 
       <header className="mt-4 mb-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <LumenAvatar size="lg" className="shrink-0" />
+          <LumenAvatar size="lg" showLabel={false} className="shrink-0" />
           <div>
             <p className="lumen-section-label">{topic.title}</p>
             <h1 className="mt-2 text-2xl font-bold text-lumen-graphite sm:text-3xl">
@@ -82,32 +85,27 @@ export function LessonPage() {
 
       <div className="mb-8 space-y-6">
         <LumenAssistant
-          greeting="Сначала разберём идею простыми словами. Если что-то непонятно — нажми кнопку ниже."
+          greeting={getLumenMessage('topic-start')}
           showWhyButton
           onWhyClick={() => navigate(`/why/${topic.slug}`)}
           showAvatar={false}
+          topicId={topic.id}
         />
         <WhyNeedItCard topicId={topic.id} topicTitle={topic.title} topicSlug={topic.slug} />
       </div>
 
-      <section className="mb-8 lumen-card p-6 sm:p-8">
-        <h2 className="text-lg font-semibold text-lumen-graphite">Объяснение темы</h2>
-        <ul className="mt-5 space-y-4">
-          {lesson.content.map((paragraph, index) => (
-            <li
-              key={index}
-              className="flex gap-4 text-sm leading-relaxed text-lumen-graphite-light sm:text-base"
-            >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-lumen-teal-soft text-xs font-semibold text-lumen-teal">
-                {index + 1}
-              </span>
-              {paragraph}
-            </li>
-          ))}
-        </ul>
+      <section className="mb-8">
+        <h2 className="mb-5 text-lg font-semibold text-lumen-graphite sm:text-xl">
+          Объяснение темы
+        </h2>
+        <LessonExplanationSections explanation={lesson.explanation} />
       </section>
 
-      <section className="mb-8 lumen-card border-lumen-teal/20 p-6 sm:p-8">
+      <section className="mb-8">
+        <VisualExplanationCard topicId={topic.id} />
+      </section>
+
+      <section className="mb-8 lumen-card border-lumen-teal/20 p-5 sm:p-6">
         <p className="lumen-section-label">Навык, который ты тренируешь</p>
         <p className="mt-2 text-base font-medium text-lumen-graphite">
           {getSkillByTopicId(topic.id)}

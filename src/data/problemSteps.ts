@@ -10,10 +10,35 @@ const STEP_TITLES = [
   'Проверка ответа',
 ] as const;
 
-interface StepData {
+const DEFAULT_QUESTIONS = [
+  'Своими словами: о чём эта задача?',
+  'Какие числа и факты даны в условии?',
+  'Что нужно найти? Сформулируй вопрос.',
+  'Как связаны данные между собой?',
+  'Какое действие подходит: сложение, вычитание, умножение или деление?',
+  'Запиши решение с вычислениями.',
+  'Проверь ответ: он похож на правду?',
+] as const;
+
+const DEFAULT_WHY = [
+  'Сначала нужно понять историю задачи, а не сразу считать.',
+  'Без данных нельзя выбрать правильное действие.',
+  'Главный вопрос задачи показывает, к чему мы идём.',
+  'Связь между числами подсказывает, что делать дальше.',
+  'Правильное действие — это следствие понимания, а не угадывание.',
+  'Запись решения помогает не потерять ход мысли.',
+  'Проверка показывает, что ответ имеет смысл.',
+] as const;
+
+export interface StepData {
   hint: string;
   content: string;
   simpleExplanation: string;
+  whyNeeded?: string;
+  question?: string;
+  lumenHint?: string;
+  answerOptions?: string[];
+  expectedAnswer?: string;
 }
 
 export function buildProblemSteps(steps: StepData[]): ProblemStep[] {
@@ -23,6 +48,11 @@ export function buildProblemSteps(steps: StepData[]): ProblemStep[] {
     hint: step.hint,
     content: step.content,
     simpleExplanation: step.simpleExplanation,
+    whyNeeded: step.whyNeeded ?? DEFAULT_WHY[index] ?? step.hint,
+    question: step.question ?? DEFAULT_QUESTIONS[index] ?? 'Что ты понял на этом шаге?',
+    lumenHint: step.lumenHint ?? step.hint,
+    answerOptions: step.answerOptions,
+    expectedAnswer: step.expectedAnswer,
     completed: false,
   }));
 }

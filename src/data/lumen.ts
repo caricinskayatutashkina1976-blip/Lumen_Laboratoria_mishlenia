@@ -1,4 +1,5 @@
 import type { LumenAction, LumenResponse } from '../types';
+import { actionMessages, getLumenMessage } from './lumenMessages';
 
 export const defaultGreeting =
   'Привет. Я Люмен. Давай разбираться спокойно и по шагам.';
@@ -6,40 +7,33 @@ export const defaultGreeting =
 export const lumenResponses: Record<LumenAction, LumenResponse> = {
   'explain-simpler': {
     action: 'explain-simpler',
-    message:
-      'Ничего страшного. Сейчас объясню проще: представь, что задача — это короткая история. Сначала найдём, о чём она.',
+    message: getLumenMessage('not-understood'),
   },
   'show-example': {
     action: 'show-example',
-    message:
-      'Вот простой пример: если ехать 50 км/ч два часа, путь = 50 × 2 = 100 км. Та же логика работает и в твоей задаче.',
+    message: actionMessages['show-example'],
   },
   'step-by-step': {
     action: 'step-by-step',
-    message:
-      'Сначала найдём, что известно. Потом поймём, что нужно найти. Двигаемся по одному шагу — не перепрыгивай.',
+    message: actionMessages['step-by-step'],
   },
   'show-scheme': {
     action: 'show-scheme',
-    message:
-      'Схема: [Скорость] ———→ [Время] ———→ [Расстояние]. Если знаешь два значения, третье можно найти по формуле S = v × t.',
+    message: actionMessages['show-scheme'],
   },
   'easier-problem': {
     action: 'easier-problem',
-    message:
-      'Давай задачу полегче: велосипедист едет 10 км/ч. Сколько он проедет за 1 час? Это та же идея, но с простыми числами.',
+    message: actionMessages['easier-problem'],
   },
   'check-answer': {
     action: 'check-answer',
-    message:
-      'Запиши свой ответ и единицы измерения. Я проверю логику: правильно ли ты связал скорость и время?',
+    message: actionMessages['check-answer'],
   },
   'still-confused': {
     action: 'still-confused',
-    message:
-      'Ошибка — это не провал. Это место, которое нужно разобрать. Давай вернёмся к шагу «Что известно?» и прочитаем условие ещё раз.',
+    message: getLumenMessage('not-understood'),
   },
 };
 
 export const whyNeedItIntro =
-  'Учёба нужна не только для оценок. Она тренирует мышление. Вот где эта тема пригодится в жизни:';
+  'Математика помогает понимать мир и принимать решения. Вот где эта тема пригодится в жизни:';
