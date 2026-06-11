@@ -1,4 +1,5 @@
-import type { ErrorStats, ErrorType, NextStepRecommendationData, TrainingSkill } from '../types';
+import type { ErrorStats, ErrorType, NextStepRecommendationData, StoredProgress, TrainingSkill } from '../types';
+import { getEasyProblemForSkill } from './problems';
 
 const ERROR_TO_SKILL: Partial<Record<ErrorType, TrainingSkill>> = {
   'missed-main-question': 'find-question',
@@ -129,7 +130,11 @@ export function getRecommendationFromError(
 export function getAdaptiveRecommendation(
   stats: ErrorStats,
   context: 'after-fix' | 'after-problem' | 'profile' | 'lesson' = 'profile',
-  options?: { lastErrorType?: ErrorType; topicSlug?: string },
+  options?: {
+    lastErrorType?: ErrorType;
+    topicSlug?: string;
+    progress?: StoredProgress;
+  },
 ): NextStepRecommendationData {
   if (options?.lastErrorType) {
     const fromError = getRecommendationFromError(
@@ -137,7 +142,10 @@ export function getAdaptiveRecommendation(
       context === 'profile' ? 'after-fix' : context,
       options.topicSlug,
     );
-    if (fromError) return fromError;
+    if (fromError) {
+      const skill = ERROR_TO_SKILL[options.lastErrorType];
+      return withProblemRecommendation(fromError, options.progress, skill);
+    }
   }
 
   const totalErrors = getTotalErrorCount(stats);
@@ -167,13 +175,50 @@ export function getAdaptiveRecommendation(
     };
 
     const rec = getRecommendationForSkill(weakSkill, 'profile', options?.topicSlug);
-    return {
+    const merged = {
       ...rec,
       text: profileTexts[weakSkill] ?? rec.text,
     };
+    return withProblemRecommendation(merged, options?.progress, weakSkill);
   }
 
-  return getRecommendationForSkill(weakSkill, context, options?.topicSlug);
+  const rec = getRecommendationForSkill(weakSkill, context, options?.topicSlug);
+  return withProblemRecommendation(rec, options?.progress, weakSkill);
+}
+
+function withProblemRecommendation(
+  rec: NextStepRecommendationData,
+  progress?: StoredProgress,
+  skill?: TrainingSkill | null,
+): NextStepRecommendationData {
+  if (!progress || !skill) return rec;
+  const problem = getEasyProblemForSkill(skill);
+  if (!problem || progress.solvedProblems.includes(problem.id)) return rec;
+
+  const skillTexts: Record<TrainingSkill, string> = {
+    'find-question':
+      'Сейчас полезно решить простую задачу на главный вопрос. Она поможет понять, что именно нужно найти.',
+    'find-data':
+      'Попробуй эту задачу — в ней важно аккуратно собрать все данные из условия.',
+    'choose-operation':
+      'Сейчас полезно решить простую задачу на выбор действия. Она поможет понять, когда нужно умножать.',
+    calculate:
+      'Эта задача поможет потренировать счёт, сохранив правильный ход решения.',
+    'check-answer':
+      'Попробуй эту задачу — в ней важно проверить, похож ли ответ на правду.',
+  };
+
+  return {
+    ...rec,
+    text: skillTexts[skill] ?? rec.text,
+    primaryLabel: `Решить: ${problem.title}`,
+    primaryLink: `/problem/${problem.id}`,
+    secondaryLabel: rec.primaryLink.startsWith('/training') ? rec.primaryLabel : 'Мини-тренировка',
+    secondaryLink: rec.primaryLink.startsWith('/training')
+      ? rec.primaryLink
+      : `/training/${skill}`,
+    recommendedProblemId: problem.id,
+  };
 }
 
 export function errorTypeToSkill(errorType: ErrorType): TrainingSkill | null {

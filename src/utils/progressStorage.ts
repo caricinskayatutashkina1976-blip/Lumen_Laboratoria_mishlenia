@@ -1,4 +1,4 @@
-import type { ErrorStats, ErrorType, StoredProgress, TrainingProgress, TrainingSkill } from '../types';
+import type { ErrorStats, ErrorType, ProblemProgressEntry, ProblemStatus, StoredProgress, TrainingProgress, TrainingSkill } from '../types';
 
 const STORAGE_KEY = 'lumen-laboratoria-progress';
 
@@ -33,6 +33,7 @@ const DEFAULT_PROGRESS: StoredProgress = {
   lastVisit: new Date().toISOString(),
   errorStats: DEFAULT_ERROR_STATS,
   trainingProgress: DEFAULT_TRAINING_PROGRESS,
+  problemProgress: {},
 };
 
 export function loadProgress(): StoredProgress {
@@ -57,6 +58,7 @@ export function loadProgress(): StoredProgress {
         completedSkills: parsed.trainingProgress?.completedSkills ?? [],
         skillAttempts: parsed.trainingProgress?.skillAttempts ?? {},
       },
+      problemProgress: parsed.problemProgress ?? {},
     };
   } catch {
     return { ...DEFAULT_PROGRESS, lastVisit: new Date().toISOString() };
@@ -283,6 +285,71 @@ export function completeTrainingSession(
   }
 
   return next;
+}
+
+function setProblemEntry(
+  progress: StoredProgress,
+  problemId: string,
+  patch: Partial<ProblemProgressEntry>,
+): StoredProgress {
+  const current = progress.problemProgress?.[problemId] ?? { status: 'not-started' as ProblemStatus };
+  return {
+    ...progress,
+    problemProgress: {
+      ...progress.problemProgress,
+      [problemId]: { ...current, ...patch },
+    },
+  };
+}
+
+export function startProblem(problemId: string, progress: StoredProgress): StoredProgress {
+  const current = progress.problemProgress?.[problemId];
+  if (current?.status === 'solved' || current?.status === 'solved-with-hint') {
+    return progress;
+  }
+  return setProblemEntry(progress, problemId, { status: 'in-progress' });
+}
+
+export function markProblemStep(
+  problemId: string,
+  step: number,
+  progress: StoredProgress,
+): StoredProgress {
+  return setProblemEntry(progress, problemId, { status: 'in-progress', lastStep: step });
+}
+
+export function markProblemError(problemId: string, progress: StoredProgress): StoredProgress {
+  return setProblemEntry(progress, problemId, {
+    status: 'needs-retry',
+    hadError: true,
+  });
+}
+
+export function markProblemHintUsed(problemId: string, progress: StoredProgress): StoredProgress {
+  return setProblemEntry(progress, problemId, { usedHint: true });
+}
+
+export function markProblemSolved(
+  problemId: string,
+  progress: StoredProgress,
+  usedHint: boolean,
+): StoredProgress {
+  return setProblemEntry(progress, problemId, {
+    status: usedHint ? 'solved-with-hint' : 'solved',
+    hadError: progress.problemProgress?.[problemId]?.hadError,
+    usedHint: usedHint || progress.problemProgress?.[problemId]?.usedHint,
+  });
+}
+
+export function setDailyProblem(
+  problemId: string,
+  progress: StoredProgress,
+): StoredProgress {
+  return {
+    ...progress,
+    dailyProblemId: problemId,
+    dailyProblemDate: new Date().toISOString().slice(0, 10),
+  };
 }
 
 export { DEFAULT_PROGRESS, STORAGE_KEY };

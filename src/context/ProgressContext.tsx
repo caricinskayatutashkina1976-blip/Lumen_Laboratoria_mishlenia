@@ -20,14 +20,21 @@ import {
   completeTrainingSession,
   loadProgress,
   saveProgress,
+  markProblemError,
+  markProblemHintUsed,
+  markProblemSolved,
+  markProblemStep,
   recordError,
   recordSelfFix,
   selectTopic as selectTopicUtil,
+  setDailyProblem,
   setCurrentMission as setCurrentMissionUtil,
   setStudentName as setStudentNameUtil,
   solveProblem as solveProblemUtil,
+  startProblem as startProblemUtil,
   unlockAchievement as unlockAchievementUtil,
 } from '../utils/progressStorage';
+import { getProblemOfDay } from '../data/problemOfDay';
 
 interface ProgressContextValue {
   progress: StoredProgress;
@@ -49,6 +56,13 @@ interface ProgressContextValue {
     options?: { lastErrorType?: ErrorType; topicSlug?: string },
   ) => NextStepRecommendationData;
   completeTraining: (skill: TrainingSkill, correctCount: number) => void;
+  startProblemSession: (problemId: string) => void;
+  trackProblemStep: (problemId: string, step: number) => void;
+  trackProblemError: (problemId: string) => void;
+  trackProblemHint: (problemId: string) => void;
+  finishProblemSession: (problemId: string, usedHint: boolean) => void;
+  getDailyProblem: () => ReturnType<typeof getProblemOfDay>;
+  ensureDailyProblem: () => void;
   topicsMastered: number;
   missionsCompleted: number;
 }
@@ -166,14 +180,51 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     (
       context: 'after-fix' | 'after-problem' | 'profile' | 'lesson' = 'profile',
       options?: { lastErrorType?: ErrorType; topicSlug?: string },
-    ) => getAdaptiveRecommendation(progress.errorStats, context, options),
-    [progress.errorStats],
+    ) =>
+      getAdaptiveRecommendation(progress.errorStats, context, {
+        ...options,
+        progress,
+      }),
+    [progress],
   );
 
   const completeTraining = useCallback((skill: TrainingSkill, correctCount: number) => {
     const training = getTrainingBySkill(skill);
     const total = training?.exercises.length ?? 3;
     setProgress((prev) => completeTrainingSession(skill, correctCount, total, prev));
+  }, []);
+
+  const startProblemSession = useCallback((problemId: string) => {
+    setProgress((prev) => startProblemUtil(problemId, prev));
+  }, []);
+
+  const trackProblemStep = useCallback((problemId: string, step: number) => {
+    setProgress((prev) => markProblemStep(problemId, step, prev));
+  }, []);
+
+  const trackProblemError = useCallback((problemId: string) => {
+    setProgress((prev) => markProblemError(problemId, prev));
+  }, []);
+
+  const trackProblemHint = useCallback((problemId: string) => {
+    setProgress((prev) => markProblemHintUsed(problemId, prev));
+  }, []);
+
+  const finishProblemSession = useCallback((problemId: string, usedHint: boolean) => {
+    setProgress((prev) => markProblemSolved(problemId, prev, usedHint));
+  }, []);
+
+  const getDailyProblem = useCallback(() => getProblemOfDay(progress), [progress]);
+
+  const ensureDailyProblem = useCallback(() => {
+    setProgress((prev) => {
+      const today = new Date().toISOString().slice(0, 10);
+      if (prev.dailyProblemDate === today && prev.dailyProblemId) {
+        return prev;
+      }
+      const problem = getProblemOfDay(prev);
+      return setDailyProblem(problem.id, prev);
+    });
   }, []);
 
   const topicsMastered = useMemo(
@@ -200,6 +251,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     getTrainingFocus,
     getLumenRecommendation,
     completeTraining,
+    startProblemSession,
+    trackProblemStep,
+    trackProblemError,
+    trackProblemHint,
+    finishProblemSession,
+    getDailyProblem,
+    ensureDailyProblem,
     topicsMastered,
     missionsCompleted,
   };

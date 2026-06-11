@@ -59,14 +59,40 @@ export interface ProblemStep {
   completed: boolean;
 }
 
+export type ProblemDifficultyLevel = 'easy' | 'medium' | 'hard';
+
+export type ProblemStatus =
+  | 'not-started'
+  | 'in-progress'
+  | 'solved'
+  | 'solved-with-hint'
+  | 'needs-retry';
+
+export interface ProblemProgressEntry {
+  status: ProblemStatus;
+  hadError?: boolean;
+  usedHint?: boolean;
+  lastStep?: number;
+}
+
 export interface Problem {
   id: string;
   topicId: string;
+  topicSlug: string;
   title: string;
   condition: string;
+  problemText: string;
+  lifeContext: string;
   steps: ProblemStep[];
   answer: string;
+  correctAnswer: string;
   difficulty: Difficulty;
+  difficultyLevel: ProblemDifficultyLevel;
+  hints: string[];
+  simpleExplanation: string;
+  commonMistake: string;
+  visualType: string;
+  relatedSkill: TrainingSkill;
 }
 
 export interface StudentProfile {
@@ -170,6 +196,7 @@ export interface NextStepRecommendationData {
   secondaryLabel: string;
   secondaryLink: string;
   skill?: TrainingSkill;
+  recommendedProblemId?: string;
 }
 
 export interface StoredProgress {
@@ -185,4 +212,7 @@ export interface StoredProgress {
   lastVisit: string;
   errorStats: ErrorStats;
   trainingProgress: TrainingProgress;
+  problemProgress: Record<string, ProblemProgressEntry>;
+  dailyProblemId?: string;
+  dailyProblemDate?: string;
 }

@@ -10,6 +10,7 @@ interface ProblemStepSolverProps {
   onAllComplete?: () => void;
   onStepError?: (errorType: ErrorType) => void;
   onSelfFix?: (errorType: ErrorType) => void;
+  onHintUsed?: () => void;
 }
 
 function normalizeAnswer(value: string): string {
@@ -33,6 +34,7 @@ export function ProblemStepSolver({
   onAllComplete,
   onStepError,
   onSelfFix,
+  onHintUsed,
 }: ProblemStepSolverProps) {
   const [steps, setSteps] = useState(initialSteps);
   const [activeStep, setActiveStep] = useState(0);
@@ -161,6 +163,11 @@ export function ProblemStepSolver({
   function handleNotUnderstood() {
     setShowSimple(true);
     setLumenFeedback(getLumenMessage('not-understood'));
+  }
+
+  function handleShowHint() {
+    setShowLumenHint(true);
+    onHintUsed?.();
   }
 
   if (!currentStep) return null;
@@ -388,7 +395,7 @@ export function ProblemStepSolver({
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => setShowLumenHint(true)}
+                  onClick={handleShowHint}
                   className="lumen-btn-secondary text-sm"
                 >
                   Подсказка от Люмена

@@ -4,6 +4,7 @@ import { NextStepRecommendation } from '../components/NextStepRecommendation/Nex
 import { LessonExplanationSections } from '../components/LessonExplanationSections/LessonExplanationSections';
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
+import { ProblemList } from '../components/ProblemList/ProblemList';
 import { VisualExplanationCard } from '../components/VisualExplanationCard/VisualExplanationCard';
 import { WhyNeedItCard } from '../components/WhyNeedItCard/WhyNeedItCard';
 import { useProgress } from '../context/ProgressContext';
@@ -16,12 +17,19 @@ import { getTopicBySlug } from '../data/topics';
 export function LessonPage() {
   const { topicSlug } = useParams<{ topicSlug: string }>();
   const navigate = useNavigate();
-  const { selectTopic, completeLesson, getTopicProgress, isTopicUnlocked, getLumenRecommendation, progress } = useProgress();
+  const {
+    selectTopic,
+    completeLesson,
+    getTopicProgress,
+    isTopicUnlocked,
+    getLumenRecommendation,
+    progress,
+  } = useProgress();
 
   const topic = topicSlug ? getTopicBySlug(topicSlug) : undefined;
   const lesson = topic ? getLessonByTopicId(topic.id) : undefined;
   const problems = topic ? getProblemsByTopicId(topic.id) : [];
-  const progress = topic ? getTopicProgress(topic.id) : 0;
+  const topicProgress = topic ? getTopicProgress(topic.id) : 0;
   const unlocked = topic ? isTopicUnlocked(topic.id) : false;
   const showTrainingRecommendation = getTotalErrorCount(progress.errorStats) > 0;
 
@@ -79,7 +87,10 @@ export function LessonPage() {
                 Сложность: {topic.difficulty}
               </span>
               <span className="rounded-lg bg-lumen-teal-soft px-3 py-1 text-xs font-medium text-lumen-teal">
-                Прогресс: {progress}%
+                Прогресс: {topicProgress}%
+              </span>
+              <span className="rounded-lg bg-lumen-bg px-3 py-1 text-xs font-medium text-lumen-graphite-light">
+                Задач: {problems.length}
               </span>
             </div>
           </div>
@@ -127,26 +138,7 @@ export function LessonPage() {
         <h2 className="mb-4 text-lg font-semibold text-lumen-graphite">
           Тренировочные задачи
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {problems.map((problem) => (
-            <Link
-              key={problem.id}
-              to={`/problem/${problem.id}`}
-              className="lumen-card group p-5 transition-all hover:border-lumen-blue/30"
-            >
-              <p className="text-xs text-lumen-silver">{problem.difficulty}</p>
-              <h3 className="mt-1 font-medium text-lumen-graphite group-hover:text-lumen-blue">
-                {problem.title}
-              </h3>
-              <p className="mt-2 line-clamp-2 text-sm text-lumen-graphite-light">
-                {problem.condition}
-              </p>
-              <span className="mt-3 inline-block text-sm font-medium text-lumen-blue">
-                Разобрать →
-              </span>
-            </Link>
-          ))}
-        </div>
+        <ProblemList problems={problems} progress={progress} topicId={topic.id} />
       </section>
     </div>
   );

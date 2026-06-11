@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
+import { ProblemOfDay } from '../components/ProblemOfDay/ProblemOfDay';
 import { TodayMission } from '../components/TodayMission/TodayMission';
+import { useProgress } from '../context/ProgressContext';
 import { getSortedTopics } from '../data/topics';
 
 const quickTopics = [
@@ -13,6 +16,13 @@ const quickTopics = [
 ];
 
 export function HomePage() {
+  const { getDailyProblem, ensureDailyProblem } = useProgress();
+  const dailyProblem = getDailyProblem();
+
+  useEffect(() => {
+    ensureDailyProblem();
+  }, [ensureDailyProblem]);
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <section className="mb-10">
@@ -61,6 +71,10 @@ export function HomePage() {
 
       <div className="mb-8">
         <TodayMission />
+      </div>
+
+      <div className="mb-8">
+        <ProblemOfDay problem={dailyProblem} />
       </div>
 
       <div className="mb-10">
