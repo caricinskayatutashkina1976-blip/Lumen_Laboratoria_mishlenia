@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --base /Lumen_Laboratoria_mishlenia/"
   },
   "dependencies": {
     "react": "^19.1.0",

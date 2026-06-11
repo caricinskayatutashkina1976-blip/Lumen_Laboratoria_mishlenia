@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 import { Layout } from './components/Layout/Layout';
 import { AchievementsPage } from './pages/AchievementsPage';
 import { HomePage } from './pages/HomePage';
@@ -11,7 +11,7 @@ import { WhyNeedItPage } from './pages/WhyNeedItPage';
 
 export function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
@@ -24,6 +24,6 @@ export function App() {
           <Route path="why/:topicSlug" element={<WhyNeedItPage />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
