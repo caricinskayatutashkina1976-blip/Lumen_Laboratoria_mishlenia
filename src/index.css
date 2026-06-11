@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  --color-lumen-bg: #eef1f6;
+  --color-lumen-surface: #ffffff;
+  --color-lumen-graphite: #1e293b;
+  --color-lumen-graphite-light: #334155;
+  --color-lumen-blue: #1d4ed8;
+  --color-lumen-blue-deep: #1e3a8a;
+  --color-lumen-blue-soft: #dbeafe;
+  --color-lumen-silver: #94a3b8;
+  --color-lumen-silver-light: #e2e8f0;
+  --color-lumen-teal: #0d9488;
+  --color-lumen-teal-soft: #ccfbf1;
+  --color-lumen-teal-muted: #5eead4;
+  --font-sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  background: linear-gradient(180deg, #eef1f6 0%, #f8fafc 40%, #eef1f6 100%);
+  color: var(--color-lumen-graphite);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.lumen-card {
+  @apply relative rounded-2xl border border-lumen-silver-light bg-lumen-surface shadow-[0_4px_24px_rgba(30,41,59,0.07)];
+}
+
+.lumen-btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-lumen-graphite px-5 py-3 text-sm font-medium text-white transition-all hover:bg-lumen-graphite-light active:scale-[0.98];
+}
+
+.lumen-btn-secondary {
+  @apply inline-flex items-center justify-center rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-2.5 text-sm font-medium text-lumen-graphite-light transition-all hover:border-lumen-teal/40 hover:bg-lumen-teal-soft/30 hover:text-lumen-graphite active:scale-[0.98];
+}
+
+.lumen-btn-accent {
+  @apply inline-flex items-center justify-center rounded-xl border border-lumen-blue/30 bg-lumen-blue-soft px-4 py-2.5 text-sm font-medium text-lumen-blue transition-all hover:bg-lumen-blue/15 active:scale-[0.98];
+}
+
+.lumen-page-title {
+  @apply text-2xl font-bold tracking-tight text-lumen-graphite sm:text-3xl;
+}
+
+.lumen-section-label {
+  @apply text-xs font-medium uppercase tracking-wider text-lumen-teal;
+}
