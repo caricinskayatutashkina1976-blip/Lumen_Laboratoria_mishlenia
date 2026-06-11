@@ -109,6 +109,69 @@ export interface LumenResponse {
   message: string;
 }
 
+export type ErrorType =
+  | 'misunderstood-condition'
+  | 'missed-main-question'
+  | 'confused-data'
+  | 'wrong-action'
+  | 'calculation-error'
+  | 'unchecked-answer'
+  | 'rushed-to-solution';
+
+export interface ErrorStats {
+  misunderstoodConditionCount: number;
+  missedQuestionCount: number;
+  confusedDataCount: number;
+  wrongActionCount: number;
+  calculationErrorCount: number;
+  uncheckedAnswerCount: number;
+  rushedCount: number;
+  selfFixedCount: number;
+  selfFixedTypes: ErrorType[];
+}
+
+export interface ErrorDiagnosis {
+  type: ErrorType;
+  label: string;
+  lumenMessage: string;
+  explanation: string;
+  whatToDo: string;
+  targetStepIndex: number;
+}
+
+export type TrainingSkill =
+  | 'find-question'
+  | 'find-data'
+  | 'choose-operation'
+  | 'calculate'
+  | 'check-answer';
+
+export interface TrainingExercise {
+  id: string;
+  condition: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export interface TrainingProgress {
+  completedSkills: TrainingSkill[];
+  exercisesCompleted: number;
+  skillAttempts: Partial<Record<TrainingSkill, number>>;
+}
+
+export interface NextStepRecommendationData {
+  summary: string;
+  title: string;
+  text: string;
+  primaryLabel: string;
+  primaryLink: string;
+  secondaryLabel: string;
+  secondaryLink: string;
+  skill?: TrainingSkill;
+}
+
 export interface StoredProgress {
   studentName: string;
   selectedTopics: string[];
@@ -120,4 +183,6 @@ export interface StoredProgress {
   completedMissions: string[];
   currentMissionId: string;
   lastVisit: string;
+  errorStats: ErrorStats;
+  trainingProgress: TrainingProgress;
 }

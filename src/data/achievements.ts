@@ -34,7 +34,7 @@ export const achievements: Achievement[] = [
     title: 'Исправил ошибку сам',
     description: 'Нашёл ошибку и исправил без готового ответа.',
     unlocked: false,
-    category: 'Решение',
+    category: 'Работа над ошибками',
   },
   {
     id: 'explain-own-words',
@@ -70,6 +70,34 @@ export const achievements: Achievement[] = [
     description: 'Прошёл все шаги разбора и понял логику решения.',
     unlocked: false,
     category: 'Понимание',
+  },
+  {
+    id: 'training-found-question',
+    title: 'Нашёл главный вопрос',
+    description: 'Успешно прошёл тренировку по поиску главного вопроса.',
+    unlocked: false,
+    category: 'Работа над ошибками',
+  },
+  {
+    id: 'training-chose-action',
+    title: 'Выбрал действие осознанно',
+    description: 'Потренировал выбор действия и понял связь между числами.',
+    unlocked: false,
+    category: 'Работа над ошибками',
+  },
+  {
+    id: 'training-checked-answer',
+    title: 'Проверил ответ',
+    description: 'Научился проверять ответ и оценивать, похож ли он на правду.',
+    unlocked: false,
+    category: 'Работа над ошибками',
+  },
+  {
+    id: 'strengthened-weakness',
+    title: 'Укрепил слабое место',
+    description: 'Прошёл мини-тренировку и закрепил навык, который давался сложнее.',
+    unlocked: false,
+    category: 'Работа над ошибками',
   },
 ];
 

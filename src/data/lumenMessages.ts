@@ -1,4 +1,4 @@
-import type { LumenAction, LumenSituation } from '../types';
+import type { LumenAction, LumenSituation, ErrorType } from '../types';
 
 export const lumenMessages: Record<LumenSituation, string[]> = {
   'topic-start': [
@@ -91,3 +91,48 @@ export const actionMessages: Record<LumenAction, string> = {
   'still-confused':
     'Ошибка — это не провал. Это место, которое нужно разобрать. Давай вернёмся к началу.',
 };
+
+export const errorDiagnosisMessages: Record<ErrorType, string> = {
+  'misunderstood-condition':
+    'Похоже, условие пока не сложилось в цельную картину. Давай перечитаем задачу и поймём, о чём история.',
+  'missed-main-question':
+    'Похоже, мы пока не нашли главный вопрос задачи. Давай вернёмся к тому, что нужно узнать.',
+  'confused-data':
+    'Данные есть, но пока не всё на своих местах. Давай аккуратно выпишем, что известно.',
+  'wrong-action':
+    'Ты правильно нашёл данные, но действие выбрано не совсем точно. Давай посмотрим, какая связь между числами.',
+  'calculation-error':
+    'Ход решения верный. Ошибка только в счёте. Это легко исправить, давай пересчитаем спокойно.',
+  'unchecked-answer':
+    'Ответ есть, но его стоит проверить. Спроси себя: он похож на правду?',
+  'rushed-to-solution':
+    'Ты перешёл к решению слишком быстро. Сначала нужно понять вопрос задачи.',
+};
+
+export const errorSimpleExplanations: Record<ErrorType, string> = {
+  'misunderstood-condition':
+    'Задача — история с вопросом. Сначала пойми, о чём она. Потом ищи числа.',
+  'missed-main-question':
+    'В конце условия спрашивают что-то конкретное. Это и есть главный вопрос.',
+  'confused-data':
+    'Каждое число что-то значит. Запиши: сколько, чего, по какой цене.',
+  'wrong-action':
+    'Сложение, если добавляют. Вычитание, если убавляют. Умножение, если ищут несколько одинаковых частей.',
+  'calculation-error':
+    'Посчитай ещё раз медленно. Можно на черновике, столбиком.',
+  'unchecked-answer':
+    'Подставь ответ обратно: получается ли то, что было в условии?',
+  'rushed-to-solution':
+    'Вопрос → данные → действие → счёт. Не перескакивай через первые шаги.',
+};
+
+export const selfFixSuccessMessage =
+  'Ты нашёл ошибку и исправил её сам. Это настоящее понимание — не бояться ошибок, а разбирать их.';
+
+export function getErrorDiagnosisMessage(type: ErrorType): string {
+  return errorDiagnosisMessages[type];
+}
+
+export function getErrorSimpleExplanation(type: ErrorType): string {
+  return errorSimpleExplanations[type];
+}

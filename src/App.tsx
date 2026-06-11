@@ -7,6 +7,7 @@ import { ProblemPage } from './pages/ProblemPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { TopicMapPage } from './pages/TopicMapPage';
 import { TopicsPage } from './pages/TopicsPage';
+import { TrainingPage } from './pages/TrainingPage';
 import { WhyNeedItPage } from './pages/WhyNeedItPage';
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
           <Route path="achievements" element={<AchievementsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="why/:topicSlug" element={<WhyNeedItPage />} />
+          <Route path="training/:skill" element={<TrainingPage />} />
         </Route>
       </Routes>
     </HashRouter>

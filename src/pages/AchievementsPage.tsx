@@ -2,11 +2,20 @@ import { Link } from 'react-router-dom';
 import { AchievementCard } from '../components/AchievementCard/AchievementCard';
 import { useAchievementsWithProgress, useProgress } from '../context/ProgressContext';
 
+const ERROR_WORK_CATEGORY = 'Работа над ошибками';
+
 export function AchievementsPage() {
   const achievements = useAchievementsWithProgress();
   const { missionsCompleted, topicsMastered, progress } = useProgress();
   const unlocked = achievements.filter((a) => a.unlocked);
   const locked = achievements.filter((a) => !a.unlocked);
+
+  const errorWorkAchievements = achievements.filter((a) => a.category === ERROR_WORK_CATEGORY);
+  const errorWorkUnlocked = errorWorkAchievements.filter((a) => a.unlocked);
+  const errorWorkLocked = errorWorkAchievements.filter((a) => !a.unlocked);
+
+  const otherUnlocked = unlocked.filter((a) => a.category !== ERROR_WORK_CATEGORY);
+  const otherLocked = locked.filter((a) => a.category !== ERROR_WORK_CATEGORY);
 
   const level = Math.max(1, Math.floor(progress.overallProgress / 20) + 1);
   const levelTitles = ['Новичок', 'Ученик', 'Исследователь', 'Решатель', 'Мастер', 'Эксперт'];
@@ -41,22 +50,46 @@ export function AchievementsPage() {
         </div>
       </section>
 
-      {unlocked.length > 0 && (
+      <section className="mb-10">
+        <h2 className="mb-2 text-lg font-semibold text-lumen-graphite">
+          Достижения за работу над ошибками
+        </h2>
+        <p className="mb-4 text-sm text-lumen-graphite-light">
+          Ошибка — это подсказка. Эти достижения открываются, когда ты разбираешь и исправляешь
+          слабые места.
+        </p>
+        {errorWorkUnlocked.length > 0 && (
+          <div className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {errorWorkUnlocked.map((achievement) => (
+              <AchievementCard key={achievement.id} achievement={achievement} />
+            ))}
+          </div>
+        )}
+        {errorWorkLocked.length > 0 && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {errorWorkLocked.map((achievement) => (
+              <AchievementCard key={achievement.id} achievement={achievement} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {otherUnlocked.length > 0 && (
         <section className="mb-10">
           <h2 className="mb-4 text-lg font-semibold text-lumen-graphite">Полученные</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {unlocked.map((achievement) => (
+            {otherUnlocked.map((achievement) => (
               <AchievementCard key={achievement.id} achievement={achievement} />
             ))}
           </div>
         </section>
       )}
 
-      {locked.length > 0 && (
+      {otherLocked.length > 0 && (
         <section>
           <h2 className="mb-4 text-lg font-semibold text-lumen-graphite">Ещё впереди</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {locked.map((achievement) => (
+            {otherLocked.map((achievement) => (
               <AchievementCard key={achievement.id} achievement={achievement} />
             ))}
           </div>

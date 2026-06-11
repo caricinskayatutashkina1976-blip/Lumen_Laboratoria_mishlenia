@@ -7,15 +7,21 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { StoredProgress } from '../types';
+import type { ErrorType, NextStepRecommendationData, StoredProgress, TrainingSkill } from '../types';
+import { getAdaptiveRecommendation } from '../data/recommendations';
+import { getTrainingFocusLabels } from '../data/errorDiagnosis';
+import { getTrainingBySkill } from '../data/trainings';
 import { achievements as achievementDefs } from '../data/achievements';
 import { topicIds, topics } from '../data/topics';
 import {
   completeLesson as completeLessonUtil,
   completeMission as completeMissionUtil,
   calculateOverallProgress,
+  completeTrainingSession,
   loadProgress,
   saveProgress,
+  recordError,
+  recordSelfFix,
   selectTopic as selectTopicUtil,
   setCurrentMission as setCurrentMissionUtil,
   setStudentName as setStudentNameUtil,
@@ -35,6 +41,14 @@ interface ProgressContextValue {
   setStudentName: (name: string) => void;
   completeMission: (missionId: string) => void;
   setCurrentMission: (missionId: string) => void;
+  recordStepError: (errorType: ErrorType) => void;
+  recordErrorSelfFix: (errorType: ErrorType) => void;
+  getTrainingFocus: () => string[];
+  getLumenRecommendation: (
+    context?: 'after-fix' | 'after-problem' | 'profile' | 'lesson',
+    options?: { lastErrorType?: ErrorType; topicSlug?: string },
+  ) => NextStepRecommendationData;
+  completeTraining: (skill: TrainingSkill, correctCount: number) => void;
   topicsMastered: number;
   missionsCompleted: number;
 }
@@ -124,6 +138,44 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setProgress((prev) => setCurrentMissionUtil(missionId, prev));
   }, []);
 
+  const recordStepError = useCallback((errorType: ErrorType) => {
+    setProgress((prev) => recordError(errorType, prev));
+  }, []);
+
+  const recordErrorSelfFix = useCallback((errorType: ErrorType) => {
+    setProgress((prev) => {
+      let next = recordSelfFix(errorType, prev);
+      next = unlockAchievementUtil('fix-error', next);
+      return next;
+    });
+  }, []);
+
+  const getTrainingFocus = useCallback(() => {
+    return getTrainingFocusLabels(progress.errorStats ?? {
+      misunderstoodConditionCount: 0,
+      missedQuestionCount: 0,
+      confusedDataCount: 0,
+      wrongActionCount: 0,
+      calculationErrorCount: 0,
+      uncheckedAnswerCount: 0,
+      rushedCount: 0,
+    });
+  }, [progress.errorStats]);
+
+  const getLumenRecommendation = useCallback(
+    (
+      context: 'after-fix' | 'after-problem' | 'profile' | 'lesson' = 'profile',
+      options?: { lastErrorType?: ErrorType; topicSlug?: string },
+    ) => getAdaptiveRecommendation(progress.errorStats, context, options),
+    [progress.errorStats],
+  );
+
+  const completeTraining = useCallback((skill: TrainingSkill, correctCount: number) => {
+    const training = getTrainingBySkill(skill);
+    const total = training?.exercises.length ?? 3;
+    setProgress((prev) => completeTrainingSession(skill, correctCount, total, prev));
+  }, []);
+
   const topicsMastered = useMemo(
     () => topics.filter((t) => getTopicProgress(t.id) >= 70).length,
     [getTopicProgress],
@@ -143,6 +195,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setStudentName,
     completeMission,
     setCurrentMission,
+    recordStepError,
+    recordErrorSelfFix,
+    getTrainingFocus,
+    getLumenRecommendation,
+    completeTraining,
     topicsMastered,
     missionsCompleted,
   };

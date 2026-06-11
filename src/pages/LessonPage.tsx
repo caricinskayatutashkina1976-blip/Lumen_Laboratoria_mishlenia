@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { NextStepRecommendation } from '../components/NextStepRecommendation/NextStepRecommendation';
 import { LessonExplanationSections } from '../components/LessonExplanationSections/LessonExplanationSections';
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
@@ -8,19 +9,21 @@ import { WhyNeedItCard } from '../components/WhyNeedItCard/WhyNeedItCard';
 import { useProgress } from '../context/ProgressContext';
 import { getLessonByTopicId, getSkillByTopicId } from '../data/lessons';
 import { getLumenMessage } from '../data/lumenMessages';
+import { getTotalErrorCount } from '../data/recommendations';
 import { getProblemsByTopicId } from '../data/problems';
 import { getTopicBySlug } from '../data/topics';
 
 export function LessonPage() {
   const { topicSlug } = useParams<{ topicSlug: string }>();
   const navigate = useNavigate();
-  const { selectTopic, completeLesson, getTopicProgress, isTopicUnlocked } = useProgress();
+  const { selectTopic, completeLesson, getTopicProgress, isTopicUnlocked, getLumenRecommendation, progress } = useProgress();
 
   const topic = topicSlug ? getTopicBySlug(topicSlug) : undefined;
   const lesson = topic ? getLessonByTopicId(topic.id) : undefined;
   const problems = topic ? getProblemsByTopicId(topic.id) : [];
   const progress = topic ? getTopicProgress(topic.id) : 0;
   const unlocked = topic ? isTopicUnlocked(topic.id) : false;
+  const showTrainingRecommendation = getTotalErrorCount(progress.errorStats) > 0;
 
   useEffect(() => {
     if (topic && lesson) {
@@ -111,6 +114,14 @@ export function LessonPage() {
           {getSkillByTopicId(topic.id)}
         </p>
       </section>
+
+      {showTrainingRecommendation && (
+        <section className="mb-8">
+          <NextStepRecommendation
+            recommendation={getLumenRecommendation('lesson', { topicSlug: topic.slug })}
+          />
+        </section>
+      )}
 
       <section className="mb-8">
         <h2 className="mb-4 text-lg font-semibold text-lumen-graphite">

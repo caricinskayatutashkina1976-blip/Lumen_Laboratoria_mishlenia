@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import type { ProblemStep } from '../../types';
-import { getLumenMessage } from '../../data/lumenMessages';
+import type { ErrorDiagnosis, ErrorType, ProblemStep } from '../../types';
+import { diagnoseStepError } from '../../data/errorDiagnosis';
+import { ErrorDiagnosisCard } from '../ErrorDiagnosisCard/ErrorDiagnosisCard';
+import { getLumenMessage, selfFixSuccessMessage } from '../../data/lumenMessages';
 
 interface ProblemStepSolverProps {
   steps: ProblemStep[];
   onStepComplete?: (stepId: number) => void;
   onAllComplete?: () => void;
+  onStepError?: (errorType: ErrorType) => void;
+  onSelfFix?: (errorType: ErrorType) => void;
 }
 
 function normalizeAnswer(value: string): string {
@@ -27,6 +31,8 @@ export function ProblemStepSolver({
   steps: initialSteps,
   onStepComplete,
   onAllComplete,
+  onStepError,
+  onSelfFix,
 }: ProblemStepSolverProps) {
   const [steps, setSteps] = useState(initialSteps);
   const [activeStep, setActiveStep] = useState(0);
@@ -37,6 +43,8 @@ export function ProblemStepSolver({
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [checkResult, setCheckResult] = useState<'idle' | 'correct' | 'wrong'>('idle');
   const [lumenFeedback, setLumenFeedback] = useState('');
+  const [diagnosis, setDiagnosis] = useState<ErrorDiagnosis | null>(null);
+  const [pendingSelfFix, setPendingSelfFix] = useState<ErrorType | null>(null);
 
   const currentStep = steps[activeStep];
   const completedCount = steps.filter((s) => s.completed).length;
@@ -49,21 +57,27 @@ export function ProblemStepSolver({
     setSelectedOption(null);
     setCheckResult('idle');
     setLumenFeedback('');
+    setDiagnosis(null);
   }
 
   function goToStep(index: number) {
-    if (index <= maxUnlocked) {
+    if (index <= maxUnlocked || pendingSelfFix !== null) {
       setActiveStep(index);
       resetStepState();
+      setPendingSelfFix(null);
     }
+  }
+
+  function isRushedToSolution(): boolean {
+    const earlySteps = steps.filter((s) => s.id <= 3);
+    const incompleteEarly = earlySteps.some((s) => !s.completed);
+    return incompleteEarly && (currentStep?.id === 5 || currentStep?.id === 6);
   }
 
   function handleCheckStep() {
     if (!currentStep) return;
 
-    const answer = currentStep.answerOptions
-      ? selectedOption ?? ''
-      : studentAnswer;
+    const answer = currentStep.answerOptions ? selectedOption ?? '' : studentAnswer;
 
     if (!answer.trim()) {
       setLumenFeedback(getLumenMessage('hint-request'));
@@ -77,10 +91,45 @@ export function ProblemStepSolver({
 
     if (isCorrect) {
       setCheckResult('correct');
-      setLumenFeedback(getLumenMessage('correct-answer'));
+      setDiagnosis(null);
+
+      if (pendingSelfFix !== null) {
+        onSelfFix?.(pendingSelfFix);
+        setLumenFeedback(selfFixSuccessMessage);
+        setPendingSelfFix(null);
+      } else {
+        setLumenFeedback(getLumenMessage('correct-answer'));
+      }
     } else {
       setCheckResult('wrong');
-      setLumenFeedback(getLumenMessage('wrong-answer'));
+      const errorDiagnosis = diagnoseStepError(currentStep.id, {
+        rushed: isRushedToSolution(),
+      });
+      setDiagnosis(errorDiagnosis);
+      setLumenFeedback(errorDiagnosis.lumenMessage);
+      onStepError?.(errorDiagnosis.type);
+    }
+  }
+
+  function handleReturnToStep() {
+    if (!diagnosis) return;
+    setPendingSelfFix(diagnosis.type);
+    setActiveStep(diagnosis.targetStepIndex);
+    setShowLumenHint(false);
+    setShowSimple(false);
+    setStudentAnswer('');
+    setSelectedOption(null);
+    setCheckResult('idle');
+    setDiagnosis(null);
+    setLumenFeedback(
+      'Давай разберём этот шаг спокойно. Ошибка — это подсказка, какой навык укрепить.',
+    );
+  }
+
+  function handleExplainSimplerFromDiagnosis() {
+    setShowSimple(true);
+    if (diagnosis) {
+      setLumenFeedback(diagnosis.lumenMessage);
     }
   }
 
@@ -91,7 +140,10 @@ export function ProblemStepSolver({
       prev.map((s) => (s.id === currentStep.id ? { ...s, completed: true } : s)),
     );
     onStepComplete?.(currentStep.id);
-    setLumenFeedback(getLumenMessage('step-complete'));
+
+    if (pendingSelfFix === null) {
+      setLumenFeedback(getLumenMessage('step-complete'));
+    }
 
     const nextUnlocked = Math.min(activeStep + 1, steps.length - 1);
     setMaxUnlocked((prev) => Math.max(prev, nextUnlocked));
@@ -153,7 +205,7 @@ export function ProblemStepSolver({
           {steps.map((step, index) => {
             const isActive = index === activeStep;
             const isDone = step.completed;
-            const isLocked = index > maxUnlocked;
+            const isLocked = index > maxUnlocked && pendingSelfFix === null;
 
             return (
               <button
@@ -195,6 +247,17 @@ export function ProblemStepSolver({
         </nav>
 
         <div className="min-w-0 space-y-4">
+          {pendingSelfFix && (
+            <div className="rounded-xl border border-lumen-teal/25 bg-lumen-teal-soft/30 px-4 py-3">
+              <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">
+                Разбираем ошибку
+              </p>
+              <p className="mt-1.5 text-sm text-lumen-graphite-light">
+                Попробуй ответить на этом шаге ещё раз — спокойно, без спешки.
+              </p>
+            </div>
+          )}
+
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">
               {currentStep.completed ? 'Пройдено' : 'Текущий шаг'}
@@ -251,6 +314,7 @@ export function ProblemStepSolver({
                         onClick={() => {
                           setSelectedOption(option);
                           setCheckResult('idle');
+                          setDiagnosis(null);
                         }}
                         className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all ${
                           selectedOption === option
@@ -269,6 +333,7 @@ export function ProblemStepSolver({
                     onChange={(e) => {
                       setStudentAnswer(e.target.value);
                       setCheckResult('idle');
+                      setDiagnosis(null);
                     }}
                     placeholder="Запиши свой ответ..."
                     className="mt-3 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20"
@@ -293,7 +358,7 @@ export function ProblemStepSolver({
                     checkResult === 'correct'
                       ? 'border-lumen-teal/30 bg-lumen-teal-soft/40'
                       : checkResult === 'wrong'
-                        ? 'border-lumen-blue/25 bg-lumen-blue-soft/30'
+                        ? 'border-lumen-blue/20 bg-lumen-blue-soft/25'
                         : 'border-lumen-silver-light bg-lumen-bg'
                   }`}
                 >
@@ -304,6 +369,14 @@ export function ProblemStepSolver({
                     {lumenFeedback}
                   </p>
                 </div>
+              )}
+
+              {diagnosis && checkResult === 'wrong' && (
+                <ErrorDiagnosisCard
+                  diagnosis={diagnosis}
+                  onReturnToStep={handleReturnToStep}
+                  onExplainSimpler={handleExplainSimplerFromDiagnosis}
+                />
               )}
 
               {checkResult === 'correct' && (

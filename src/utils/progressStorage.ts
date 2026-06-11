@@ -1,6 +1,24 @@
-import type { StoredProgress } from '../types';
+import type { ErrorStats, ErrorType, StoredProgress, TrainingProgress, TrainingSkill } from '../types';
 
 const STORAGE_KEY = 'lumen-laboratoria-progress';
+
+export const DEFAULT_ERROR_STATS: ErrorStats = {
+  misunderstoodConditionCount: 0,
+  missedQuestionCount: 0,
+  confusedDataCount: 0,
+  wrongActionCount: 0,
+  calculationErrorCount: 0,
+  uncheckedAnswerCount: 0,
+  rushedCount: 0,
+  selfFixedCount: 0,
+  selfFixedTypes: [],
+};
+
+export const DEFAULT_TRAINING_PROGRESS: TrainingProgress = {
+  completedSkills: [],
+  exercisesCompleted: 0,
+  skillAttempts: {},
+};
 
 const DEFAULT_PROGRESS: StoredProgress = {
   studentName: 'Алексей',
@@ -13,6 +31,8 @@ const DEFAULT_PROGRESS: StoredProgress = {
   completedMissions: [],
   currentMissionId: 'mission-find-question',
   lastVisit: new Date().toISOString(),
+  errorStats: DEFAULT_ERROR_STATS,
+  trainingProgress: DEFAULT_TRAINING_PROGRESS,
 };
 
 export function loadProgress(): StoredProgress {
@@ -30,6 +50,13 @@ export function loadProgress(): StoredProgress {
       solvedProblems: parsed.solvedProblems ?? [],
       unlockedAchievements: parsed.unlockedAchievements ?? ['first-step'],
       completedMissions: parsed.completedMissions ?? [],
+      errorStats: { ...DEFAULT_ERROR_STATS, ...parsed.errorStats },
+      trainingProgress: {
+        ...DEFAULT_TRAINING_PROGRESS,
+        ...parsed.trainingProgress,
+        completedSkills: parsed.trainingProgress?.completedSkills ?? [],
+        skillAttempts: parsed.trainingProgress?.skillAttempts ?? {},
+      },
     };
   } catch {
     return { ...DEFAULT_PROGRESS, lastVisit: new Date().toISOString() };
@@ -157,6 +184,105 @@ export function setCurrentMission(
   progress: StoredProgress,
 ): StoredProgress {
   return { ...progress, currentMissionId: missionId };
+}
+
+function incrementErrorStat(stats: ErrorStats, type: ErrorType): ErrorStats {
+  const next = { ...stats };
+  switch (type) {
+    case 'misunderstood-condition':
+      next.misunderstoodConditionCount += 1;
+      break;
+    case 'missed-main-question':
+      next.missedQuestionCount += 1;
+      break;
+    case 'confused-data':
+      next.confusedDataCount += 1;
+      break;
+    case 'wrong-action':
+      next.wrongActionCount += 1;
+      break;
+    case 'calculation-error':
+      next.calculationErrorCount += 1;
+      break;
+    case 'unchecked-answer':
+      next.uncheckedAnswerCount += 1;
+      break;
+    case 'rushed-to-solution':
+      next.rushedCount += 1;
+      break;
+  }
+  return next;
+}
+
+export function recordError(
+  errorType: ErrorType,
+  progress: StoredProgress,
+): StoredProgress {
+  return {
+    ...progress,
+    errorStats: incrementErrorStat(progress.errorStats ?? DEFAULT_ERROR_STATS, errorType),
+  };
+}
+
+export function recordSelfFix(
+  errorType: ErrorType,
+  progress: StoredProgress,
+): StoredProgress {
+  const stats = progress.errorStats ?? DEFAULT_ERROR_STATS;
+  const selfFixedTypes = stats.selfFixedTypes.includes(errorType)
+    ? stats.selfFixedTypes
+    : [...stats.selfFixedTypes, errorType];
+
+  return {
+    ...progress,
+    errorStats: {
+      ...stats,
+      selfFixedCount: stats.selfFixedCount + 1,
+      selfFixedTypes,
+    },
+  };
+}
+
+const SKILL_ACHIEVEMENTS: Partial<Record<TrainingSkill, string[]>> = {
+  'find-question': ['training-found-question'],
+  'choose-operation': ['training-chose-action'],
+  'check-answer': ['training-checked-answer'],
+};
+
+export function completeTrainingSession(
+  skill: TrainingSkill,
+  correctCount: number,
+  totalExercises: number,
+  progress: StoredProgress,
+): StoredProgress {
+  const tp = progress.trainingProgress ?? DEFAULT_TRAINING_PROGRESS;
+  const passed = correctCount >= Math.ceil(totalExercises * 0.67);
+
+  const completedSkills = passed && !tp.completedSkills.includes(skill)
+    ? [...tp.completedSkills, skill]
+    : tp.completedSkills;
+
+  let next: StoredProgress = {
+    ...progress,
+    trainingProgress: {
+      completedSkills,
+      exercisesCompleted: tp.exercisesCompleted + correctCount,
+      skillAttempts: {
+        ...tp.skillAttempts,
+        [skill]: (tp.skillAttempts[skill] ?? 0) + 1,
+      },
+    },
+  };
+
+  if (passed) {
+    next = unlockAchievement('strengthened-weakness', next);
+    const achievementIds = SKILL_ACHIEVEMENTS[skill] ?? [];
+    for (const id of achievementIds) {
+      next = unlockAchievement(id, next);
+    }
+  }
+
+  return next;
 }
 
 export { DEFAULT_PROGRESS, STORAGE_KEY };

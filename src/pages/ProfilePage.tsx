@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { NextStepRecommendation } from '../components/NextStepRecommendation/NextStepRecommendation';
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { useAchievementsWithProgress, useProgress } from '../context/ProgressContext';
@@ -13,6 +14,8 @@ export function ProfilePage() {
     isTopicUnlocked,
     topicsMastered,
     missionsCompleted,
+    getTrainingFocus,
+    getLumenRecommendation,
   } = useProgress();
   const achievements = useAchievementsWithProgress();
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
@@ -27,6 +30,9 @@ export function ProfilePage() {
   const xp = progress.overallProgress * 10;
   const xpToNext = level * 200;
   const xpPercent = Math.min(100, Math.round((xp / xpToNext) * 100));
+  const trainingFocus = getTrainingFocus();
+  const errorStats = progress.errorStats;
+  const lumenRecommendation = getLumenRecommendation('profile');
 
   function saveName() {
     setStudentName(nameInput);
@@ -123,6 +129,33 @@ export function ProfilePage() {
           </Link>
         </section>
       </div>
+
+      <section className="mb-8 lumen-card border-l-4 border-lumen-blue p-5 sm:p-6">
+        <p className="lumen-section-label">С чем сейчас тренируемся</p>
+        <ul className="mt-4 space-y-3">
+          {trainingFocus.map((item, index) => (
+            <li
+              key={index}
+              className="flex items-center gap-3 text-sm leading-relaxed text-lumen-graphite-light sm:text-base"
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-lumen-blue-soft text-xs font-semibold text-lumen-blue">
+                {index + 1}
+              </span>
+              {item}
+            </li>
+          ))}
+        </ul>
+        {errorStats && errorStats.selfFixedCount > 0 && (
+          <p className="mt-4 text-sm text-lumen-teal">
+            Исправлено ошибок самостоятельно: {errorStats.selfFixedCount}
+          </p>
+        )}
+      </section>
+
+      <section className="mb-8">
+        <p className="lumen-section-label mb-4">Рекомендация Люмена</p>
+        <NextStepRecommendation recommendation={lumenRecommendation} />
+      </section>
 
       <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">

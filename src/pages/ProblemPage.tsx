@@ -1,23 +1,34 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { NextStepRecommendation } from '../components/NextStepRecommendation/NextStepRecommendation';
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { ProblemStepSolver } from '../components/ProblemStepSolver/ProblemStepSolver';
 import { VisualExplanationCard } from '../components/VisualExplanationCard/VisualExplanationCard';
 import { useProgress } from '../context/ProgressContext';
+import { getRecommendationFromError } from '../data/recommendations';
 import { getLumenMessage } from '../data/lumenMessages';
 import { getProblemById } from '../data/problems';
 import { getTopicById } from '../data/topics';
+import type { ErrorType, NextStepRecommendationData } from '../types';
 
 export function ProblemPage() {
   const { problemId } = useParams<{ problemId: string }>();
-  const { solveProblem, unlockAchievement } = useProgress();
+  const {
+    solveProblem,
+    unlockAchievement,
+    recordStepError,
+    recordErrorSelfFix,
+    getLumenRecommendation,
+  } = useProgress();
   const problem = problemId ? getProblemById(problemId) : undefined;
   const topic = problem ? getTopicById(problem.topicId) : undefined;
   const [studentAnswer, setStudentAnswer] = useState('');
   const [answerChecked, setAnswerChecked] = useState(false);
   const [allStepsDone, setAllStepsDone] = useState(false);
-
+  const [recommendation, setRecommendation] = useState<NextStepRecommendationData | null>(
+    null,
+  );
   if (!problem) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-12 text-center">
@@ -39,6 +50,17 @@ export function ProblemPage() {
     unlockAchievement('understand-not-memorize');
     unlockAchievement('solved-no-hint');
     setAllStepsDone(true);
+    setRecommendation(
+      getLumenRecommendation('after-problem', { topicSlug: topic?.slug }),
+    );
+  }
+
+  function handleSelfFix(errorType: ErrorType) {
+    recordErrorSelfFix(errorType);
+    setRecommendation(
+      getRecommendationFromError(errorType, 'after-fix', topic?.slug) ??
+        getLumenRecommendation('after-fix', { lastErrorType: errorType, topicSlug: topic?.slug }),
+    );
   }
 
   function handleCheckFinalAnswer() {
@@ -124,7 +146,15 @@ export function ProblemPage() {
         steps={problem.steps}
         onStepComplete={handleStepComplete}
         onAllComplete={handleAllComplete}
+        onStepError={recordStepError}
+        onSelfFix={handleSelfFix}
       />
+
+      {recommendation && (
+        <div className="mt-8">
+          <NextStepRecommendation recommendation={recommendation} />
+        </div>
+      )}
 
       {topic && (
         <div className="mt-8">
