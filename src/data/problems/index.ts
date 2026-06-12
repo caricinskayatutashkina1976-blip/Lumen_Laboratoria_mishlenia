@@ -2,10 +2,12 @@ import type { Problem } from '../../types';
 import { buildProblems } from './problemBuilder';
 import { problemDrafts } from './problemBank';
 import { problemDraftsNewTopics } from './problemBankNewTopics';
+import { problemDraftsGrade6 } from './problemBankGrade6';
 
 export const problems: Problem[] = buildProblems([
   ...problemDrafts,
   ...problemDraftsNewTopics,
+  ...problemDraftsGrade6,
 ]);
 
 export function getProblemById(id: string): Problem | undefined {

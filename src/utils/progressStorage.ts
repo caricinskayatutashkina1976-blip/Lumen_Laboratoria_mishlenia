@@ -1,4 +1,18 @@
-import type { ErrorStats, ErrorType, ProblemProgressEntry, ProblemStatus, StoredProgress, TrainingProgress, TrainingSkill } from '../types';
+import type {
+  ErrorStats,
+  ErrorType,
+  GradeProgressMap,
+  ProblemProgressEntry,
+  ProblemStatus,
+  StoredProgress,
+  TrainingProgress,
+  TrainingSkill,
+} from '../types';
+import {
+  activeTopicIdsGrade5,
+  activeTopicIdsGrade6,
+  reviewTopicIds,
+} from '../data/topics';
 
 const STORAGE_KEY = 'lumen-laboratoria-progress';
 
@@ -42,7 +56,7 @@ export function loadProgress(): StoredProgress {
     if (!raw) return { ...DEFAULT_PROGRESS, lastVisit: new Date().toISOString() };
 
     const parsed = JSON.parse(raw) as Partial<StoredProgress>;
-    return {
+    return withGradeProgress({
       ...DEFAULT_PROGRESS,
       ...parsed,
       topicProgress: parsed.topicProgress ?? {},
@@ -59,7 +73,7 @@ export function loadProgress(): StoredProgress {
         skillAttempts: parsed.trainingProgress?.skillAttempts ?? {},
       },
       problemProgress: parsed.problemProgress ?? {},
-    };
+    });
   } catch {
     return { ...DEFAULT_PROGRESS, lastVisit: new Date().toISOString() };
   }
@@ -97,6 +111,25 @@ export function calculateOverallProgress(
   return Math.round(sum / topicIds.length);
 }
 
+export function calculateGradeProgressMap(
+  topicProgress: Record<string, number>,
+): GradeProgressMap {
+  return {
+    5: calculateOverallProgress(topicProgress, activeTopicIdsGrade5),
+    6: calculateOverallProgress(topicProgress, activeTopicIdsGrade6),
+    review: calculateOverallProgress(topicProgress, reviewTopicIds),
+  };
+}
+
+function withGradeProgress(progress: StoredProgress): StoredProgress {
+  const gradeProgress = calculateGradeProgressMap(progress.topicProgress);
+  return {
+    ...progress,
+    overallProgress: gradeProgress[5],
+    gradeProgress,
+  };
+}
+
 export function selectTopic(topicId: string, progress: StoredProgress): StoredProgress {
   const selectedTopics = progress.selectedTopics.includes(topicId)
     ? progress.selectedTopics
@@ -121,12 +154,11 @@ export function completeLesson(
     [topicId]: Math.min(100, Math.max(current, 25)),
   };
 
-  return {
+  return withGradeProgress({
     ...progress,
     completedLessons,
     topicProgress,
-    overallProgress: calculateOverallProgress(topicProgress, topicIds),
-  };
+  });
 }
 
 export function solveProblem(
@@ -146,12 +178,11 @@ export function solveProblem(
     [topicId]: Math.min(100, current + increment),
   };
 
-  return {
+  return withGradeProgress({
     ...progress,
     solvedProblems,
     topicProgress,
-    overallProgress: calculateOverallProgress(topicProgress, topicIds),
-  };
+  });
 }
 
 export function unlockAchievement(

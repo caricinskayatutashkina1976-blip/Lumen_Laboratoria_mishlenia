@@ -7,7 +7,13 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { ErrorType, NextStepRecommendationData, StoredProgress, TrainingSkill } from '../types';
+import type {
+  ErrorType,
+  GradeProgressMap,
+  NextStepRecommendationData,
+  StoredProgress,
+  TrainingSkill,
+} from '../types';
 import { getAdaptiveRecommendation } from '../data/recommendations';
 import { getTrainingFocusLabels } from '../data/errorDiagnosis';
 import { getTrainingBySkill } from '../data/trainings';
@@ -16,7 +22,7 @@ import { activeTopicIds, topics } from '../data/topics';
 import {
   completeLesson as completeLessonUtil,
   completeMission as completeMissionUtil,
-  calculateOverallProgress,
+  calculateGradeProgressMap,
   completeTrainingSession,
   loadProgress,
   saveProgress,
@@ -38,6 +44,7 @@ import { getProblemOfDay } from '../data/problemOfDay';
 
 interface ProgressContextValue {
   progress: StoredProgress;
+  gradeProgress: GradeProgressMap;
   isAchievementUnlocked: (id: string) => boolean;
   getTopicProgress: (topicId: string) => number;
   isTopicUnlocked: (topicId: string) => boolean;
@@ -70,13 +77,12 @@ interface ProgressContextValue {
 const ProgressContext = createContext<ProgressContextValue | null>(null);
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
-  const [progress, setProgress] = useState<StoredProgress>(() => {
-    const loaded = loadProgress();
-    return {
-      ...loaded,
-      overallProgress: calculateOverallProgress(loaded.topicProgress, activeTopicIds),
-    };
-  });
+  const [progress, setProgress] = useState<StoredProgress>(() => loadProgress());
+
+  const gradeProgress = useMemo(
+    () => progress.gradeProgress ?? calculateGradeProgressMap(progress.topicProgress),
+    [progress.gradeProgress, progress.topicProgress],
+  );
 
   useEffect(() => {
     saveProgress(progress);
@@ -242,6 +248,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const value: ProgressContextValue = {
     progress,
+    gradeProgress,
     isAchievementUnlocked,
     getTopicProgress,
     isTopicUnlocked,

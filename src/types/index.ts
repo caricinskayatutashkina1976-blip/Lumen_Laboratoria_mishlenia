@@ -1,5 +1,11 @@
 export type Difficulty = 'лёгкий' | 'средний' | 'сложный';
 
+/** Класс темы (5 или 6) или режим просмотра «Повторение» */
+export type Grade = 5 | 6 | 'review';
+
+/** Класс, к которому относится тема в программе */
+export type GradeLevel = 5 | 6;
+
 export type TopicGroupId = 'numbers' | 'fractions' | 'life' | 'geometry' | 'data';
 
 export type TopicStatus = 'ready' | 'in-progress' | 'soon';
@@ -19,6 +25,7 @@ export interface Topic {
   progress: number;
   slug: string;
   order: number;
+  grade: GradeLevel;
   group: TopicGroupId;
   category: string;
   status: TopicStatus;
@@ -26,6 +33,8 @@ export interface Topic {
   relatedTopics?: string[];
   soonHint?: string;
   unlockAfter?: string;
+  /** Важна для повторения перед 6 классом */
+  reviewImportant?: boolean;
 }
 
 export interface Achievement {
@@ -225,6 +234,12 @@ export interface NextStepRecommendationData {
   recommendedProblemId?: string;
 }
 
+export interface GradeProgressMap {
+  5: number;
+  6: number;
+  review: number;
+}
+
 export interface StoredProgress {
   studentName: string;
   selectedTopics: string[];
@@ -233,6 +248,7 @@ export interface StoredProgress {
   unlockedAchievements: string[];
   topicProgress: Record<string, number>;
   overallProgress: number;
+  gradeProgress?: GradeProgressMap;
   completedMissions: string[];
   currentMissionId: string;
   lastVisit: string;

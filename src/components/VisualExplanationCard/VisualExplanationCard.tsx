@@ -30,6 +30,12 @@ const VISUAL_TYPE_ALIASES: Record<string, string> = {
   steps: 'expression',
   'decimal-fractions': 'decimal',
   decimal: 'decimal',
+  'signed-numbers': 'signedNumber',
+  signedNumber: 'signedNumber',
+  'coordinate-line': 'coordinateLine',
+  coordinateLine: 'coordinateLine',
+  'absolute-value': 'absoluteValue',
+  absoluteValue: 'absoluteValue',
 };
 
 const VISUAL_TITLES: Record<string, string> = {
@@ -46,6 +52,9 @@ const VISUAL_TITLES: Record<string, string> = {
   numberLine: 'Координатный луч',
   expression: 'Порядок действий',
   decimal: 'Десятичная дробь',
+  signedNumber: 'Положительные и отрицательные числа',
+  coordinateLine: 'Координатная прямая',
+  absoluteValue: 'Модуль числа',
 };
 
 function resolveVisualType(visualType?: string, topicId?: string): string {
@@ -354,6 +363,108 @@ function DecimalVisual() {
   );
 }
 
+function SignedNumberVisual() {
+  const points = [
+    { n: -3, left: '15%' },
+    { n: -1, left: '35%' },
+    { n: 0, left: '50%' },
+    { n: 2, left: '70%' },
+    { n: 4, left: '90%' },
+  ];
+  return (
+    <div className="mx-auto max-w-md space-y-4">
+      <div className="relative pt-8 pb-2">
+        <div className="h-1 rounded-full bg-lumen-silver-light" />
+        <div
+          className="absolute top-6 h-4 w-4 -translate-x-1/2 rounded-full bg-lumen-graphite"
+          style={{ left: '50%' }}
+        />
+        {points.map((p) => (
+          <div
+            key={p.n}
+            className={`absolute top-10 -translate-x-1/2 text-xs font-semibold ${
+              p.n < 0 ? 'text-lumen-blue' : p.n > 0 ? 'text-lumen-teal' : 'text-lumen-graphite'
+            }`}
+            style={{ left: p.left }}
+          >
+            {p.n > 0 ? `+${p.n}` : p.n}
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between text-xs font-medium text-lumen-graphite-light">
+        <span>Отрицательные ←</span>
+        <span>0</span>
+        <span>→ Положительные</span>
+      </div>
+    </div>
+  );
+}
+
+function CoordinateLineVisual() {
+  return (
+    <div className="mx-auto max-w-md space-y-4">
+      <div className="relative pt-6 pb-4">
+        <div className="flex items-center">
+          <span className="text-xs font-medium text-lumen-blue">← меньше</span>
+          <div className="relative mx-3 h-1 flex-1 rounded-full bg-lumen-silver-light">
+            <div className="absolute left-1/2 top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lumen-graphite" />
+            <div
+              className="absolute top-1/2 -translate-y-1/2 text-[10px] text-lumen-graphite-light"
+              style={{ left: '20%' }}
+            >
+              −3
+            </div>
+            <div
+              className="absolute top-1/2 -translate-y-1/2 text-[10px] text-lumen-teal"
+              style={{ left: '75%' }}
+            >
+              +2
+            </div>
+          </div>
+          <span className="text-xs font-medium text-lumen-teal">больше →</span>
+        </div>
+      </div>
+      <p className="text-center text-sm text-lumen-graphite-light">
+        Вправо числа увеличиваются, влево уменьшаются
+      </p>
+    </div>
+  );
+}
+
+function AbsoluteValueVisual() {
+  return (
+    <div className="mx-auto max-w-sm space-y-4">
+      <div className="relative pt-6 pb-6">
+        <div className="h-1 rounded-full bg-lumen-silver-light" />
+        <div className="absolute left-1/2 top-4 h-3 w-3 -translate-x-1/2 rounded-full bg-lumen-graphite" />
+        <span className="absolute left-1/2 top-8 -translate-x-1/2 text-xs font-semibold text-lumen-graphite">
+          0
+        </span>
+        <div
+          className="absolute top-3 h-4 w-4 rounded-full border-2 border-lumen-blue bg-lumen-blue-soft"
+          style={{ left: '25%' }}
+        />
+        <span className="absolute top-9 text-xs font-semibold text-lumen-blue" style={{ left: '22%' }}>
+          −5
+        </span>
+        <div
+          className="absolute top-5 border-t-2 border-dashed border-lumen-teal"
+          style={{ left: '25%', width: '25%', height: 0 }}
+        />
+        <span
+          className="absolute top-1 text-xs font-medium text-lumen-teal"
+          style={{ left: '34%' }}
+        >
+          5 ед.
+        </span>
+      </div>
+      <p className="text-center text-sm text-lumen-graphite-light">
+        |−5| = 5 — модуль это расстояние до нуля
+      </p>
+    </div>
+  );
+}
+
 const visualMap: Record<string, () => ReactNode> = {
   wordProblem: WordProblemVisual,
   fractions: FractionVisual,
@@ -368,6 +479,9 @@ const visualMap: Record<string, () => ReactNode> = {
   numberLine: NumberLineVisual,
   expression: ExpressionVisual,
   decimal: DecimalVisual,
+  signedNumber: SignedNumberVisual,
+  coordinateLine: CoordinateLineVisual,
+  absoluteValue: AbsoluteValueVisual,
 };
 
 export function VisualExplanationCard({

@@ -10,6 +10,7 @@ import { filterTopics, getSortedTopics } from '../data/topics';
 export function ProfilePage() {
   const {
     progress,
+    gradeProgress,
     setStudentName,
     getTopicProgress,
     isTopicUnlocked,
@@ -86,14 +87,29 @@ export function ProfilePage() {
 
               <div className="mt-5">
                 <div className="mb-1.5 flex justify-between text-xs text-lumen-silver">
-                  <span>Общий прогресс</span>
-                  <span>{progress.overallProgress}%</span>
+                  <span>Общий прогресс · 5 класс</span>
+                  <span>{gradeProgress[5]}%</span>
                 </div>
                 <div className="h-2.5 overflow-hidden rounded-full bg-lumen-silver-light">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-lumen-blue to-lumen-teal"
                     style={{ width: `${xpPercent}%` }}
                   />
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl bg-lumen-bg px-3 py-2">
+                  <p className="text-xs text-lumen-silver">5 класс</p>
+                  <p className="text-sm font-semibold text-lumen-graphite">{gradeProgress[5]}%</p>
+                </div>
+                <div className="rounded-xl bg-lumen-bg px-3 py-2">
+                  <p className="text-xs text-lumen-silver">6 класс</p>
+                  <p className="text-sm font-semibold text-lumen-graphite">{gradeProgress[6]}%</p>
+                </div>
+                <div className="rounded-xl bg-lumen-bg px-3 py-2">
+                  <p className="text-xs text-lumen-silver">Повторение</p>
+                  <p className="text-sm font-semibold text-lumen-graphite">{gradeProgress.review}%</p>
                 </div>
               </div>
             </div>

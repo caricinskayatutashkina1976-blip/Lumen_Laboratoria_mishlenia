@@ -1,4 +1,4 @@
-import type { Difficulty, Topic, TopicGroupId, TopicStatus } from '../types';
+import type { Difficulty, GradeLevel, Topic, TopicGroupId, TopicStatus } from '../types';
 import { GROUP_TITLES } from './topicGroups';
 
 type TopicInput = {
@@ -8,12 +8,14 @@ type TopicInput = {
   description: string;
   group: TopicGroupId;
   order: number;
+  grade?: GradeLevel;
   status?: TopicStatus;
   difficulty?: Difficulty;
   skill?: string;
   relatedTopics?: string[];
   soonHint?: string;
   unlockAfter?: string;
+  reviewImportant?: boolean;
 };
 
 function defineTopic(input: TopicInput): Topic {
@@ -23,6 +25,7 @@ function defineTopic(input: TopicInput): Topic {
     title: input.title,
     description: input.description,
     group: input.group,
+    grade: input.grade ?? 5,
     category: GROUP_TITLES[input.group],
     status: input.status ?? 'soon',
     difficulty: input.difficulty ?? 'средний',
@@ -32,6 +35,7 @@ function defineTopic(input: TopicInput): Topic {
     relatedTopics: input.relatedTopics,
     soonHint: input.soonHint,
     unlockAfter: input.unlockAfter,
+    reviewImportant: input.reviewImportant,
   };
 }
 
@@ -47,6 +51,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'лёгкий',
     skill: 'Понимать натуральные числа и сравнивать количества',
+    reviewImportant: true,
     relatedTopics: ['comparison', 'units'],
   }),
   defineTopic({
@@ -104,6 +109,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'средний',
     skill: 'Выбирать правильный порядок действий в выражении',
+    reviewImportant: true,
     unlockAfter: 'natural-numbers',
     relatedTopics: ['text-problems', 'equations'],
   }),
@@ -150,6 +156,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'средний',
     skill: 'Работать с дробями и частями целого',
+    reviewImportant: true,
   }),
   defineTopic({
     id: 'proper-fractions',
@@ -197,6 +204,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'средний',
     skill: 'Работать с десятичными дробями в задачах',
+    reviewImportant: true,
     unlockAfter: 'fractions',
     relatedTopics: ['fractions', 'comparison'],
   }),
@@ -237,6 +245,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'лёгкий',
     skill: 'Понимать проценты и доли',
+    reviewImportant: true,
   }),
   defineTopic({
     id: 'percent-of-number',
@@ -280,6 +289,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'сложный',
     skill: 'Связывать скорость, время и расстояние',
+    reviewImportant: true,
     unlockAfter: 'text-problems',
   }),
   defineTopic({
@@ -434,6 +444,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'лёгкий',
     skill: 'Переводить единицы измерения',
+    reviewImportant: true,
   }),
   defineTopic({
     id: 'units-mass',
@@ -513,6 +524,7 @@ export const topicDefinitions: Topic[] = [
     status: 'ready',
     difficulty: 'средний',
     skill: 'Находить неизвестное в уравнении',
+    reviewImportant: true,
     unlockAfter: 'text-problems',
   }),
   defineTopic({
@@ -541,5 +553,172 @@ export const topicDefinitions: Topic[] = [
     group: 'data',
     order: 51,
     relatedTopics: ['logic-problems', 'text-problems'],
+  }),
+
+  // ── 6 класс (готовится) ──
+  defineTopic({
+    id: 'signed-numbers',
+    slug: 'signed-numbers',
+    title: 'Положительные и отрицательные числа',
+    description: 'Учимся работать с числами больше и меньше нуля.',
+    group: 'numbers',
+    grade: 6,
+    order: 52,
+    status: 'ready',
+    difficulty: 'лёгкий',
+    skill: 'Различать положительные и отрицательные числа и сравнивать их',
+    soonHint: 'Перед этой темой полезно повторить натуральные числа, сравнение величин и порядок действий.',
+    relatedTopics: ['natural-numbers', 'comparison', 'number-line', 'order-of-operations'],
+  }),
+  defineTopic({
+    id: 'coordinate-line',
+    slug: 'coordinate-line',
+    title: 'Координатная прямая',
+    description: 'Размещаем числа на прямой и сравниваем их положение.',
+    group: 'numbers',
+    grade: 6,
+    order: 53,
+    status: 'ready',
+    difficulty: 'лёгкий',
+    skill: 'Находить числа на координатной прямой и сравнивать их положение',
+    unlockAfter: 'signed-numbers',
+    soonHint: 'Перед этой темой полезно повторить координатный луч, сравнение величин и натуральные числа.',
+    relatedTopics: ['natural-numbers', 'comparison', 'number-line', 'order-of-operations', 'signed-numbers'],
+  }),
+  defineTopic({
+    id: 'absolute-value',
+    slug: 'absolute-value',
+    title: 'Модуль числа',
+    description: 'Учимся находить расстояние от числа до нуля на прямой.',
+    group: 'numbers',
+    grade: 6,
+    order: 54,
+    status: 'ready',
+    difficulty: 'средний',
+    skill: 'Находить модуль числа как расстояние до нуля',
+    unlockAfter: 'coordinate-line',
+    soonHint: 'Перед этой темой полезно повторить координатную прямую, сравнение и порядок действий.',
+    relatedTopics: ['natural-numbers', 'comparison', 'number-line', 'order-of-operations', 'coordinate-line', 'signed-numbers'],
+  }),
+  defineTopic({
+    id: 'signed-add-subtract',
+    slug: 'signed-add-subtract',
+    title: 'Сложение и вычитание чисел с разными знаками',
+    description: 'Складываем и вычитаем положительные и отрицательные числа.',
+    group: 'numbers',
+    grade: 6,
+    order: 55,
+    relatedTopics: ['signed-numbers', 'order-of-operations', 'natural-numbers'],
+  }),
+  defineTopic({
+    id: 'signed-multiply-divide',
+    slug: 'signed-multiply-divide',
+    title: 'Умножение и деление чисел с разными знаками',
+    description: 'Разбираем правила знаков при умножении и делении.',
+    group: 'numbers',
+    grade: 6,
+    order: 56,
+    relatedTopics: ['signed-numbers', 'order-of-operations', 'fractions'],
+  }),
+  defineTopic({
+    id: 'ratios',
+    slug: 'ratios',
+    title: 'Отношения',
+    description: 'Сравниваем величины через отношение и понимаем его смысл.',
+    group: 'fractions',
+    grade: 6,
+    order: 57,
+    relatedTopics: ['fractions', 'comparison', 'decimal-fractions'],
+  }),
+  defineTopic({
+    id: 'proportions',
+    slug: 'proportions',
+    title: 'Пропорции',
+    description: 'Находим неизвестное величину через равенство отношений.',
+    group: 'fractions',
+    grade: 6,
+    order: 58,
+    soonHint: 'Пропорции связывают рецепты, карты, скидки и масштаб.',
+    relatedTopics: ['fractions', 'percents', 'comparison', 'equations'],
+  }),
+  defineTopic({
+    id: 'scale',
+    slug: 'scale',
+    title: 'Масштаб',
+    description: 'Переводим расстояния на карте в реальные расстояния.',
+    group: 'fractions',
+    grade: 6,
+    order: 59,
+    relatedTopics: ['units', 'comparison', 'percents', 'proportions'],
+  }),
+  defineTopic({
+    id: 'rational-numbers',
+    slug: 'rational-numbers',
+    title: 'Рациональные числа',
+    description: 'Объединяем целые, дробные и отрицательные числа в одну систему.',
+    group: 'fractions',
+    grade: 6,
+    order: 60,
+    relatedTopics: ['fractions', 'decimal-fractions', 'signed-numbers'],
+  }),
+  defineTopic({
+    id: 'expanding-brackets',
+    slug: 'expanding-brackets',
+    title: 'Раскрытие скобок',
+    description: 'Упрощаем выражения, раскрывая скобки по правилам.',
+    group: 'data',
+    grade: 6,
+    order: 61,
+    relatedTopics: ['order-of-operations', 'equations', 'signed-numbers'],
+  }),
+  defineTopic({
+    id: 'like-terms',
+    slug: 'like-terms',
+    title: 'Приведение подобных слагаемых',
+    description: 'Складываем части выражения с одинаковыми буквами или степенями.',
+    group: 'data',
+    grade: 6,
+    order: 62,
+    relatedTopics: ['expanding-brackets', 'equations', 'order-of-operations'],
+  }),
+  defineTopic({
+    id: 'solving-equations-6',
+    slug: 'solving-equations-6',
+    title: 'Решение уравнений',
+    description: 'Решаем уравнения с несколькими действиями и скобками.',
+    group: 'data',
+    grade: 6,
+    order: 63,
+    relatedTopics: ['equations', 'order-of-operations', 'like-terms'],
+  }),
+  defineTopic({
+    id: 'coordinate-plane',
+    slug: 'coordinate-plane',
+    title: 'Координатная плоскость',
+    description: 'Находим точки на плоскости по двум координатам.',
+    group: 'geometry',
+    grade: 6,
+    order: 64,
+    relatedTopics: ['coordinate-line', 'area-perimeter', 'comparison'],
+  }),
+  defineTopic({
+    id: 'diagrams-graphs',
+    slug: 'diagrams-graphs',
+    title: 'Диаграммы и графики',
+    description: 'Читаем данные с графиков и строим простые зависимости.',
+    group: 'data',
+    grade: 6,
+    order: 65,
+    relatedTopics: ['percents', 'comparison', 'charts'],
+  }),
+  defineTopic({
+    id: 'circle',
+    slug: 'circle',
+    title: 'Окружность и круг',
+    description: 'Различаем окружность и круг, находим длину и площадь.',
+    group: 'geometry',
+    grade: 6,
+    order: 66,
+    relatedTopics: ['area-perimeter', 'units', 'comparison'],
   }),
 ];
