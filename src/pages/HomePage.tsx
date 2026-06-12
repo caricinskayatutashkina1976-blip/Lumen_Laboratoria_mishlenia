@@ -222,14 +222,6 @@ export function HomePage() {
 
       <div className="mb-10">
 
-        <CurriculumPath compact gradeView={gradeView} />
-
-      </div>
-
-
-
-      <div className="mb-10">
-
         <LumenAssistant
           greeting="Выбери, чем помочь — объясню проще, покажу пример или разберём по шагам."
           compact
@@ -237,6 +229,14 @@ export function HomePage() {
           showInput={true}
           showHomeworkButton
         />
+
+      </div>
+
+
+
+      <div className="mb-10">
+
+        <CurriculumPath compact gradeView={gradeView} />
 
       </div>
 

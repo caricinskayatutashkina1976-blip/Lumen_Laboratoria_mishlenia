@@ -51,7 +51,7 @@ export function LumenAssistant({
   showInput = true,
   showQuestionInput,
 }: LumenAssistantProps) {
-  const inputVisible = showQuestionInput !== false && showInput !== false;
+  const hideInput = showInput === false || showQuestionInput === false;
 
   const [activeAction, setActiveAction] = useState<LumenAction | null>(null);
   const [showScheme, setShowScheme] = useState(false);
@@ -178,18 +178,23 @@ export function LumenAssistant({
 
         {actionReaction && <LumenReply text={actionReaction} />}
 
-        {inputVisible && (
+        {!hideInput && (
           <div
-            className="rounded-xl border-2 border-lumen-teal/30 bg-white p-4 shadow-sm sm:p-5"
+            className="rounded-xl border-2 border-lumen-teal bg-lumen-bg p-4 shadow-md sm:p-5"
             data-testid="lumen-assistant-input-block"
+            style={{ display: 'block', minHeight: '120px' }}
           >
-            <h3 className="text-sm font-semibold text-lumen-graphite">Напиши Люмену</h3>
+            <h3 className="text-base font-bold text-lumen-graphite">Напиши Люмену</h3>
+            <p className="mt-1 text-xs text-lumen-silver">
+              Задай вопрос или напиши, что непонятно — Люмен ответит здесь.
+            </p>
             <form
               onSubmit={handleAskQuestion}
-              className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-stretch"
+              className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center"
             >
               <input
                 id="lumen-assistant-question"
+                name="lumen-question"
                 type="text"
                 value={questionInput}
                 onChange={(e) => {
@@ -199,10 +204,22 @@ export function LumenAssistant({
                 placeholder="Напиши вопрос или то, что непонятно…"
                 className={inputClassName}
                 autoComplete="off"
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  minHeight: '48px',
+                  padding: '12px 16px',
+                  border: '2px solid #94a3b8',
+                  borderRadius: '12px',
+                  backgroundColor: '#ffffff',
+                  color: '#1e293b',
+                  fontSize: '14px',
+                }}
               />
               <button
                 type="submit"
-                className="lumen-btn-primary shrink-0 px-6 py-3 text-sm sm:self-stretch"
+                className="lumen-btn-primary shrink-0 px-6 py-3 text-sm"
+                style={{ minHeight: '48px', minWidth: '120px' }}
               >
                 Отправить
               </button>
