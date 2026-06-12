@@ -4,7 +4,8 @@ import { NextStepRecommendation } from '../components/NextStepRecommendation/Nex
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { useAchievementsWithProgress, useProgress } from '../context/ProgressContext';
-import { getSortedTopics } from '../data/topics';
+import { CurriculumPath } from '../components/CurriculumPath/CurriculumPath';
+import { filterTopics, getSortedTopics } from '../data/topics';
 
 export function ProfilePage() {
   const {
@@ -19,7 +20,7 @@ export function ProfilePage() {
   } = useProgress();
   const achievements = useAchievementsWithProgress();
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
-  const sortedTopics = getSortedTopics();
+  const readyTopics = filterTopics(getSortedTopics(), 'ready');
 
   const [nameInput, setNameInput] = useState(progress.studentName);
   const [editingName, setEditingName] = useState(false);
@@ -158,14 +159,18 @@ export function ProfilePage() {
       </section>
 
       <section className="mb-8">
+        <CurriculumPath compact />
+      </section>
+
+      <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-lumen-graphite">Карта тем</h2>
+          <h2 className="text-lg font-semibold text-lumen-graphite">Готовые темы</h2>
           <Link to="/map" className="text-sm text-lumen-blue hover:underline">
             Полная карта →
           </Link>
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {sortedTopics.map((topic) => {
+          {readyTopics.map((topic) => {
             const topicProgress = getTopicProgress(topic.id);
             const unlocked = isTopicUnlocked(topic.id);
 

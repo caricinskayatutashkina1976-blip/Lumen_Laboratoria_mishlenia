@@ -5,7 +5,8 @@ import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { ProblemOfDay } from '../components/ProblemOfDay/ProblemOfDay';
 import { TodayMission } from '../components/TodayMission/TodayMission';
 import { useProgress } from '../context/ProgressContext';
-import { getSortedTopics } from '../data/topics';
+import { CurriculumPath } from '../components/CurriculumPath/CurriculumPath';
+import { activeTopicIds, topics } from '../data/topics';
 
 const quickTopics = [
   { slug: 'text-problems', label: 'Текстовые задачи' },
@@ -55,6 +56,9 @@ export function HomePage() {
                 <Link to="/topics" className="lumen-btn-accent text-center">
                   Я не понял тему
                 </Link>
+                <Link to="/homework" className="lumen-btn-secondary text-center">
+                  Помочь с домашним заданием
+                </Link>
               </div>
             </div>
 
@@ -75,6 +79,10 @@ export function HomePage() {
 
       <div className="mb-8">
         <ProblemOfDay problem={dailyProblem} />
+      </div>
+
+      <div className="mb-10">
+        <CurriculumPath compact />
       </div>
 
       <div className="mb-10">
@@ -131,7 +139,7 @@ export function HomePage() {
       <section className="lumen-card p-6 sm:p-8">
         <h2 className="text-lg font-semibold text-lumen-graphite">Все темы курса</h2>
         <p className="mt-1 text-sm text-lumen-silver">
-          {getSortedTopics().length} тем для 5–6 класса
+          {topics.length} тем в программе 5 класса · {activeTopicIds.length} готовы к изучению
         </p>
         <Link to="/map" className="lumen-btn-primary mt-4 inline-flex">
           Открыть карту тем

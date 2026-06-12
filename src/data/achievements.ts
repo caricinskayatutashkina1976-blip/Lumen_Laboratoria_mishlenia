@@ -99,6 +99,13 @@ export const achievements: Achievement[] = [
     unlocked: false,
     category: 'Работа над ошибками',
   },
+  {
+    id: 'homework-steps-done',
+    title: 'Разобрал домашнюю задачу',
+    description: 'Прошёл все шаги разбора домашней задачи без готового ответа.',
+    unlocked: false,
+    category: 'Домашка',
+  },
 ];
 
 export function getAchievementById(id: string): Achievement | undefined {

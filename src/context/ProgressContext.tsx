@@ -12,7 +12,7 @@ import { getAdaptiveRecommendation } from '../data/recommendations';
 import { getTrainingFocusLabels } from '../data/errorDiagnosis';
 import { getTrainingBySkill } from '../data/trainings';
 import { achievements as achievementDefs } from '../data/achievements';
-import { topicIds, topics } from '../data/topics';
+import { activeTopicIds, topics } from '../data/topics';
 import {
   completeLesson as completeLessonUtil,
   completeMission as completeMissionUtil,
@@ -74,7 +74,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const loaded = loadProgress();
     return {
       ...loaded,
-      overallProgress: calculateOverallProgress(loaded.topicProgress, topicIds),
+      overallProgress: calculateOverallProgress(loaded.topicProgress, activeTopicIds),
     };
   });
 
@@ -96,6 +96,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     (topicId: string) => {
       const topic = topics.find((t) => t.id === topicId);
       if (!topic) return false;
+      if (topic.status === 'soon') return true;
       if (!topic.unlockAfter) return true;
       return getTopicProgress(topic.unlockAfter) >= 30;
     },
@@ -108,14 +109,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const completeLesson = useCallback((lessonId: string, topicId: string) => {
     setProgress((prev) => {
-      const next = completeLessonUtil(lessonId, topicId, prev, topicIds);
+      const next = completeLessonUtil(lessonId, topicId, prev, activeTopicIds);
       return unlockAchievementUtil('first-step', next);
     });
   }, []);
 
   const solveProblem = useCallback((problemId: string, topicId: string) => {
     setProgress((prev) => {
-      let next = solveProblemUtil(problemId, topicId, prev, topicIds);
+      let next = solveProblemUtil(problemId, topicId, prev, activeTopicIds);
       next = unlockAchievementUtil('see-question', next);
       if (next.solvedProblems.length >= 3) {
         next = unlockAchievementUtil('confident-solver', next);
@@ -228,7 +229,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const topicsMastered = useMemo(
-    () => topics.filter((t) => getTopicProgress(t.id) >= 70).length,
+    () =>
+      topics.filter(
+        (t) =>
+          (t.status === 'ready' || t.status === 'in-progress') &&
+          getTopicProgress(t.id) >= 70,
+      ).length,
     [getTopicProgress],
   );
 

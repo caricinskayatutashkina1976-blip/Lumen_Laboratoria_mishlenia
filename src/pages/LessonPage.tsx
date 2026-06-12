@@ -5,6 +5,7 @@ import { LessonExplanationSections } from '../components/LessonExplanationSectio
 import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { ProblemList } from '../components/ProblemList/ProblemList';
+import { TopicSelfAnswer } from '../components/TopicSelfAnswer/TopicSelfAnswer';
 import { VisualExplanationCard } from '../components/VisualExplanationCard/VisualExplanationCard';
 import { WhyNeedItCard } from '../components/WhyNeedItCard/WhyNeedItCard';
 import { useProgress } from '../context/ProgressContext';
@@ -12,6 +13,7 @@ import { getLessonByTopicId, getSkillByTopicId } from '../data/lessons';
 import { getLumenMessage } from '../data/lumenMessages';
 import { getTotalErrorCount } from '../data/recommendations';
 import { getProblemsByTopicId } from '../data/problems';
+import { TopicSoonPage } from '../components/TopicSoonPage/TopicSoonPage';
 import { getTopicBySlug } from '../data/topics';
 
 export function LessonPage() {
@@ -34,13 +36,28 @@ export function LessonPage() {
   const showTrainingRecommendation = getTotalErrorCount(progress.errorStats) > 0;
 
   useEffect(() => {
-    if (topic && lesson) {
+    if (topic && lesson && topic.status !== 'soon') {
       selectTopic(topic.id);
       completeLesson(lesson.id, topic.id);
     }
   }, [topic, lesson, selectTopic, completeLesson]);
 
-  if (!topic || !lesson) {
+  if (!topic) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-12 text-center">
+        <h1 className="text-xl font-semibold text-lumen-graphite">Тема не найдена</h1>
+        <Link to="/topics" className="mt-4 inline-block text-lumen-blue hover:underline">
+          Вернуться к темам
+        </Link>
+      </div>
+    );
+  }
+
+  if (topic.status === 'soon') {
+    return <TopicSoonPage topic={topic} />;
+  }
+
+  if (!lesson) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-12 text-center">
         <h1 className="text-xl font-semibold text-lumen-graphite">Тема не найдена</h1>
@@ -113,6 +130,10 @@ export function LessonPage() {
           Объяснение темы
         </h2>
         <LessonExplanationSections explanation={lesson.explanation} />
+      </section>
+
+      <section className="mb-8">
+        <TopicSelfAnswer />
       </section>
 
       <section className="mb-8">

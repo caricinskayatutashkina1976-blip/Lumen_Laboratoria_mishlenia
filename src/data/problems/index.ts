@@ -1,8 +1,12 @@
 import type { Problem } from '../../types';
 import { buildProblems } from './problemBuilder';
 import { problemDrafts } from './problemBank';
+import { problemDraftsNewTopics } from './problemBankNewTopics';
 
-export const problems: Problem[] = buildProblems(problemDrafts);
+export const problems: Problem[] = buildProblems([
+  ...problemDrafts,
+  ...problemDraftsNewTopics,
+]);
 
 export function getProblemById(id: string): Problem | undefined {
   return problems.find((p) => p.id === id);

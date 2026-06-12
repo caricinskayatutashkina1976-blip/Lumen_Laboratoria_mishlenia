@@ -1,5 +1,16 @@
 export type Difficulty = 'лёгкий' | 'средний' | 'сложный';
 
+export type TopicGroupId = 'numbers' | 'fractions' | 'life' | 'geometry' | 'data';
+
+export type TopicStatus = 'ready' | 'in-progress' | 'soon';
+
+export interface TopicGroup {
+  id: TopicGroupId;
+  title: string;
+  description: string;
+  order: number;
+}
+
 export interface Topic {
   id: string;
   title: string;
@@ -8,6 +19,12 @@ export interface Topic {
   progress: number;
   slug: string;
   order: number;
+  group: TopicGroupId;
+  category: string;
+  status: TopicStatus;
+  skill: string;
+  relatedTopics?: string[];
+  soonHint?: string;
   unlockAfter?: string;
 }
 

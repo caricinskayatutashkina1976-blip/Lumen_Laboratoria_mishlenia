@@ -23,6 +23,13 @@ const VISUAL_TYPE_ALIASES: Record<string, string> = {
   units: 'measurement',
   measurement: 'measurement',
   comparison: 'comparison',
+  'natural-numbers': 'numberLine',
+  numberLine: 'numberLine',
+  'order-of-operations': 'expression',
+  expression: 'expression',
+  steps: 'expression',
+  'decimal-fractions': 'decimal',
+  decimal: 'decimal',
 };
 
 const VISUAL_TITLES: Record<string, string> = {
@@ -36,6 +43,9 @@ const VISUAL_TITLES: Record<string, string> = {
   divisibility: 'Делимость числа',
   measurement: 'Перевод единиц',
   comparison: 'Сравнение величин',
+  numberLine: 'Координатный луч',
+  expression: 'Порядок действий',
+  decimal: 'Десятичная дробь',
 };
 
 function resolveVisualType(visualType?: string, topicId?: string): string {
@@ -270,6 +280,80 @@ function DivisibilityVisual() {
   );
 }
 
+function NumberLineVisual() {
+  const points = [0, 1, 2, 3, 4, 5];
+  return (
+    <div className="mx-auto max-w-md space-y-4">
+      <div className="relative pt-6">
+        <div className="h-1 rounded-full bg-lumen-silver-light" />
+        <div className="absolute left-0 top-4 h-3 w-3 rounded-full bg-lumen-blue" />
+        {points.map((n) => (
+          <div
+            key={n}
+            className="absolute top-6 -translate-x-1/2 text-xs font-semibold text-lumen-graphite"
+            style={{ left: `${(n / 5) * 100}%` }}
+          >
+            {n}
+          </div>
+        ))}
+        <div
+          className="absolute top-2 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-lumen-teal bg-lumen-teal-soft"
+          style={{ left: '60%' }}
+        />
+      </div>
+      <p className="text-center text-sm text-lumen-graphite-light">
+        Натуральные числа на луче: 1, 2, 3, 4, 5…
+      </p>
+    </div>
+  );
+}
+
+function ExpressionVisual() {
+  const steps = [
+    { label: '1. Скобки', color: 'border-lumen-blue/25 bg-lumen-blue-soft/40 text-lumen-blue' },
+    { label: '2. × и ÷', color: 'border-lumen-teal/25 bg-lumen-teal-soft/40 text-lumen-teal' },
+    { label: '3. + и −', color: 'border-lumen-graphite/15 bg-lumen-bg text-lumen-graphite-light' },
+  ];
+  return (
+    <div className="mx-auto max-w-md space-y-4">
+      <p className="text-center text-sm font-medium text-lumen-graphite">
+        2 + 3 × 4 → сначала 3×4, потом +2
+      </p>
+      <div className="grid gap-2">
+        {steps.map((step) => (
+          <div
+            key={step.label}
+            className={`rounded-xl border px-4 py-3 text-center text-sm font-semibold ${step.color}`}
+          >
+            {step.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DecimalVisual() {
+  return (
+    <div className="mx-auto max-w-sm space-y-4">
+      <div className="rounded-xl border-2 border-lumen-graphite/20 bg-lumen-bg px-6 py-5 text-center">
+        <p className="text-3xl font-bold tracking-wider text-lumen-graphite">
+          <span className="text-lumen-blue">12</span>
+          <span className="text-lumen-teal">,</span>
+          <span className="text-lumen-teal">5</span>
+        </p>
+      </div>
+      <div className="flex justify-between text-sm font-medium text-lumen-graphite-light">
+        <span>Целая часть</span>
+        <span>Дробная часть</span>
+      </div>
+      <p className="text-center text-sm text-lumen-graphite-light">
+        Запятая отделяет целое от частей
+      </p>
+    </div>
+  );
+}
+
 const visualMap: Record<string, () => ReactNode> = {
   wordProblem: WordProblemVisual,
   fractions: FractionVisual,
@@ -281,6 +365,9 @@ const visualMap: Record<string, () => ReactNode> = {
   divisibility: DivisibilityVisual,
   measurement: MeasurementVisual,
   comparison: ComparisonVisual,
+  numberLine: NumberLineVisual,
+  expression: ExpressionVisual,
+  decimal: DecimalVisual,
 };
 
 export function VisualExplanationCard({

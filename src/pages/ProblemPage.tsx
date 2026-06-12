@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { NextStepRecommendation } from '../components/NextStepRecommendation/NextStepRecommendation';
-import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
+import { ProblemLumenChat } from '../components/ProblemLumenChat/ProblemLumenChat';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { ProblemStepSolver } from '../components/ProblemStepSolver/ProblemStepSolver';
 import { VisualExplanationCard } from '../components/VisualExplanationCard/VisualExplanationCard';
@@ -181,12 +181,13 @@ export function ProblemPage() {
       </div>
 
       <div className="mb-8">
-        <LumenAssistant
-          compact
-          greeting="Сначала найдём, что известно. Потом поймём, что нужно найти."
-          avatarSize="sm"
-          showAvatarLabel={false}
-          topicId={problem.topicId}
+        <ProblemLumenChat
+          context={{
+            title: problem.title,
+            problemText: problem.problemText,
+            lifeContext: problem.lifeContext,
+            commonMistake: problem.commonMistake,
+          }}
         />
       </div>
 

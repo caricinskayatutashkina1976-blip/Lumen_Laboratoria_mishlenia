@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { NextStepRecommendation } from '../components/NextStepRecommendation/NextStepRecommendation';
 import { useProgress } from '../context/ProgressContext';
 import { getAdaptiveRecommendation } from '../data/recommendations';
+import { getTrainingExplanationResponse } from '../data/lumenChatResponses';
 import { getTrainingBySkill, isValidTrainingSkill } from '../data/trainings';
 
 export function TrainingPage() {
@@ -15,6 +16,8 @@ export function TrainingPage() {
   const [checked, setChecked] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [reasoning, setReasoning] = useState('');
+  const [reasoningFeedback, setReasoningFeedback] = useState<string | null>(null);
 
   if (!training) {
     return (
@@ -37,6 +40,7 @@ export function TrainingPage() {
     if (selected === exercise.correctAnswer) {
       setCorrectCount((c) => c + 1);
     }
+    setReasoningFeedback(getTrainingExplanationResponse(reasoning));
   }
 
   function handleNext() {
@@ -47,6 +51,8 @@ export function TrainingPage() {
       setActiveIndex((i) => i + 1);
       setSelected(null);
       setChecked(false);
+      setReasoning('');
+      setReasoningFeedback(null);
     }
   }
 
@@ -140,21 +146,49 @@ export function TrainingPage() {
           ))}
         </div>
 
+        <div className="mt-5">
+          <label htmlFor="training-reasoning" className="text-sm font-medium text-lumen-graphite">
+            Объясни, почему ты так думаешь
+          </label>
+          <textarea
+            id="training-reasoning"
+            value={reasoning}
+            onChange={(e) => {
+              setReasoning(e.target.value);
+              setReasoningFeedback(null);
+            }}
+            disabled={checked}
+            placeholder="Напиши коротко свой ход мысли…"
+            rows={2}
+            className="mt-2 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20 disabled:opacity-60"
+          />
+        </div>
+
         {checked && (
-          <div
-            className={`mt-5 rounded-xl border px-4 py-3 ${
-              isCorrect
-                ? 'border-lumen-teal/30 bg-lumen-teal-soft/40'
-                : 'border-lumen-blue/20 bg-lumen-blue-soft/25'
-            }`}
-          >
-            <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">Люмен</p>
-            <p className="mt-1.5 text-sm leading-relaxed text-lumen-graphite-light">
-              {isCorrect
-                ? exercise.explanation
-                : `Пока не сходится. ${exercise.explanation}`}
-            </p>
-          </div>
+          <>
+            <div
+              className={`mt-5 rounded-xl border px-4 py-3 ${
+                isCorrect
+                  ? 'border-lumen-teal/30 bg-lumen-teal-soft/40'
+                  : 'border-lumen-blue/20 bg-lumen-blue-soft/25'
+              }`}
+            >
+              <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">Люмен</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-lumen-graphite-light">
+                {isCorrect
+                  ? exercise.explanation
+                  : `Пока не сходится. ${exercise.explanation}`}
+              </p>
+            </div>
+            {reasoningFeedback && (
+              <div className="mt-3 rounded-xl border border-lumen-teal/20 bg-lumen-teal-soft/25 px-4 py-3">
+                <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">Люмен</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-lumen-graphite-light">
+                  {reasoningFeedback}
+                </p>
+              </div>
+            )}
+          </>
         )}
 
         <div className="mt-5 flex flex-wrap gap-2">

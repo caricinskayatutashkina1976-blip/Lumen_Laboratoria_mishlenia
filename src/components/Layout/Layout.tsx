@@ -4,6 +4,7 @@ const navItems = [
   { to: '/', label: 'Главная' },
   { to: '/map', label: 'Карта тем' },
   { to: '/topics', label: 'Темы' },
+  { to: '/homework', label: 'Домашка' },
   { to: '/achievements', label: 'Достижения' },
   { to: '/profile', label: 'Профиль' },
 ];
