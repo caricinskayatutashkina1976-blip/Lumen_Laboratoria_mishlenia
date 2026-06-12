@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { Link } from 'react-router-dom';
 
-import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
+import { HomeLumenMentor } from '../components/HomeLumenMentor/HomeLumenMentor';
 
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 
@@ -178,6 +178,14 @@ export function HomePage() {
 
 
 
+      <div className="mb-10">
+
+        <HomeLumenMentor />
+
+      </div>
+
+
+
       <div className="mb-8">
 
         <GradeSwitcher
@@ -215,20 +223,6 @@ export function HomePage() {
       <div className="mb-8">
 
         <ProblemOfDay problem={dailyProblem} />
-
-      </div>
-
-
-
-      <div className="mb-10">
-
-        <LumenAssistant
-          greeting="Выбери, чем помочь — объясню проще, покажу пример или разберём по шагам."
-          compact
-          showAvatarLabel={false}
-          showInput={true}
-          showHomeworkButton
-        />
 
       </div>
 
