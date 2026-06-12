@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { HomeworkStepSolver, HomeworkSummary } from '../components/HomeworkStepSolver/HomeworkStepSolver';
 import { HomeworkVisual } from '../components/HomeworkVisual/HomeworkVisual';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
+import { LumenReply } from '../components/LumenReply/LumenReply';
+import { StudentInputBox } from '../components/StudentInputBox/StudentInputBox';
 import { useProgress } from '../context/ProgressContext';
 import { buildHomeworkBreakdown } from '../data/homeworkAnalyzer';
 import {
@@ -23,6 +25,7 @@ export function HomeworkPage() {
   const [finalAnswers, setFinalAnswers] = useState<Record<number, string>>({});
   const [pendingDraft, setPendingDraft] = useState<HomeworkDraft | null>(null);
   const [showResumePrompt, setShowResumePrompt] = useState(false);
+  const [emptyHint, setEmptyHint] = useState<string | null>(null);
 
   useEffect(() => {
     const draft = loadHomeworkDraft();
@@ -33,7 +36,13 @@ export function HomeworkPage() {
   }, []);
 
   function handleAnalyze() {
-    if (!condition.trim()) return;
+    if (!condition.trim()) {
+      setEmptyHint(
+        'Сначала вставь условие задачи. Можно просто переписать его из учебника или тетради.',
+      );
+      return;
+    }
+    setEmptyHint(null);
     const result = buildHomeworkBreakdown(condition);
     setBreakdown(result);
     setPhase('solving');
@@ -90,7 +99,7 @@ export function HomeworkPage() {
               Помощь с домашним заданием
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-lumen-graphite-light sm:text-base">
-              Напиши условие задачи. Люмен поможет разобрать её по шагам, но не будет просто
+              Вставь условие задачи. Люмен поможет разобрать её по шагам, но не будет просто
               выдавать ответ.
             </p>
             <blockquote className="mt-4 rounded-xl border border-lumen-teal/20 bg-lumen-teal-soft/30 px-4 py-3">
@@ -124,25 +133,22 @@ export function HomeworkPage() {
 
       {phase === 'input' && (
         <section className="lumen-card p-5 sm:p-6">
-          <label htmlFor="homework-condition" className="text-sm font-medium text-lumen-graphite">
-            Условие задачи
-          </label>
-          <textarea
-            id="homework-condition"
+          <StudentInputBox
+            label="Условие задачи"
+            placeholder="Вставь сюда условие задачи…"
+            buttonText="Разобрать задачу"
+            multiline
+            rows={8}
             value={condition}
-            onChange={(e) => setCondition(e.target.value)}
-            placeholder="Напиши сюда условие задачи…"
-            rows={6}
-            className="mt-3 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm leading-relaxed text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20"
+            onChange={(value) => {
+              setCondition(value);
+              setEmptyHint(null);
+            }}
+            onSubmit={handleAnalyze}
+            id="homework-condition"
+            submitOnEnter={false}
           />
-          <button
-            type="button"
-            onClick={handleAnalyze}
-            disabled={!condition.trim()}
-            className="lumen-btn-primary mt-4 text-sm disabled:opacity-50"
-          >
-            Разобрать задачу
-          </button>
+          {emptyHint && <div className="mt-4"><LumenReply text={emptyHint} variant="hint" /></div>}
         </section>
       )}
 

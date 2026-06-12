@@ -4,6 +4,9 @@ import { diagnoseStepError, getDiagnosisForErrorType } from '../../data/errorDia
 import { ErrorDiagnosisCard } from '../ErrorDiagnosisCard/ErrorDiagnosisCard';
 import { getLumenMessage, selfFixSuccessMessage } from '../../data/lumenMessages';
 import { evaluateTextAnswer } from '../../utils/answerMatching';
+import { getStepTextAnswerFeedback } from '../../data/lumenChatResponses';
+import { StudentInputBox } from '../StudentInputBox/StudentInputBox';
+import { LumenReply } from '../LumenReply/LumenReply';
 
 interface ProblemStepSolverProps {
   steps: ProblemStep[];
@@ -138,8 +141,16 @@ export function ProblemStepSolver({
       return;
     }
 
-    if (!studentAnswer.trim()) {
-      setLumenFeedback(getLumenMessage('hint-request'));
+    const trimmed = studentAnswer.trim();
+    if (!trimmed) {
+      setCheckResult('idle');
+      setLumenFeedback(getStepTextAnswerFeedback('', 'empty'));
+      return;
+    }
+
+    if (trimmed.length < 3) {
+      setCheckResult('idle');
+      setLumenFeedback(getStepTextAnswerFeedback(trimmed, 'short'));
       return;
     }
 
@@ -149,7 +160,15 @@ export function ProblemStepSolver({
       currentStep.acceptedAnswers,
       currentStep.acceptedKeywords,
     );
-    handleTextResult(evaluation.result, evaluation.message);
+
+    const feedbackText =
+      evaluation.result === 'exact' || evaluation.result === 'close'
+        ? getStepTextAnswerFeedback(trimmed, evaluation.result)
+        : evaluation.result === 'wrong'
+          ? getStepTextAnswerFeedback(trimmed, 'wrong')
+          : evaluation.message;
+
+    handleTextResult(evaluation.result, feedbackText);
   }
 
   function handleReturnToStep() {
@@ -378,18 +397,20 @@ export function ProblemStepSolver({
                     ))}
                   </div>
                 ) : (
-                  <input
-                    type="text"
-                    value={studentAnswer}
-                    onChange={(e) => {
-                      setStudentAnswer(e.target.value);
-                      setCheckResult('idle');
-                      setDiagnosis(null);
-                      setLumenFeedback('');
-                    }}
-                    placeholder="Запиши свой ответ..."
-                    className="mt-3 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20"
-                  />
+                  <div className="mt-3">
+                    <StudentInputBox
+                      placeholder="Запиши свой ответ…"
+                      buttonText="Проверить"
+                      value={studentAnswer}
+                      onChange={(value) => {
+                        setStudentAnswer(value);
+                        setCheckResult('idle');
+                        setDiagnosis(null);
+                        setLumenFeedback('');
+                      }}
+                      onSubmit={handleCheckStep}
+                    />
+                  </div>
                 )}
               </div>
 
@@ -405,22 +426,12 @@ export function ProblemStepSolver({
               )}
 
               {lumenFeedback && (
-                <div
-                  className={`rounded-xl border px-4 py-3 ${
-                    checkResult === 'correct' || checkResult === 'close'
-                      ? 'border-lumen-teal/30 bg-lumen-teal-soft/40'
-                      : checkResult === 'wrong'
-                        ? 'border-lumen-blue/20 bg-lumen-blue-soft/25'
-                        : 'border-lumen-silver-light bg-lumen-bg'
-                  }`}
-                >
-                  <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">
-                    Люмен
-                  </p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-lumen-graphite-light">
-                    {lumenFeedback}
-                  </p>
-                </div>
+                <LumenReply
+                  text={lumenFeedback}
+                  variant={
+                    checkResult === 'correct' || checkResult === 'close' ? 'success' : 'default'
+                  }
+                />
               )}
 
               {diagnosis && checkResult === 'wrong' && (
@@ -445,13 +456,15 @@ export function ProblemStepSolver({
                 >
                   Подсказка от Люмена
                 </button>
-                <button
-                  type="button"
-                  onClick={handleCheckStep}
-                  className="lumen-btn-primary text-sm"
-                >
-                  Проверить шаг
-                </button>
+                {currentStep.answerOptions?.length ? (
+                  <button
+                    type="button"
+                    onClick={handleCheckStep}
+                    className="lumen-btn-primary text-sm"
+                  >
+                    Проверить
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={handleNotUnderstood}

@@ -5,6 +5,8 @@ import { useProgress } from '../context/ProgressContext';
 import { getAdaptiveRecommendation } from '../data/recommendations';
 import { getTrainingExplanationResponse } from '../data/lumenChatResponses';
 import { getTrainingBySkill, isValidTrainingSkill } from '../data/trainings';
+import { StudentInputBox } from '../components/StudentInputBox/StudentInputBox';
+import { LumenReply } from '../components/LumenReply/LumenReply';
 
 export function TrainingPage() {
   const { skill } = useParams<{ skill: string }>();
@@ -146,23 +148,23 @@ export function TrainingPage() {
           ))}
         </div>
 
-        <div className="mt-5">
-          <label htmlFor="training-reasoning" className="text-sm font-medium text-lumen-graphite">
-            Объясни, почему ты так думаешь
-          </label>
-          <textarea
-            id="training-reasoning"
-            value={reasoning}
-            onChange={(e) => {
-              setReasoning(e.target.value);
-              setReasoningFeedback(null);
-            }}
-            disabled={checked}
-            placeholder="Напиши коротко свой ход мысли…"
-            rows={2}
-            className="mt-2 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20 disabled:opacity-60"
-          />
-        </div>
+        <StudentInputBox
+          label="Объясни, почему ты так думаешь"
+          placeholder="Напиши коротко свой ход мысли…"
+          buttonText="Проверить"
+          multiline
+          rows={2}
+          value={reasoning}
+          onChange={(value) => {
+            setReasoning(value);
+            setReasoningFeedback(null);
+          }}
+          onSubmit={() => {}}
+          id="training-reasoning"
+          disabled={checked}
+          submitOnEnter={false}
+          showSubmitButton={false}
+        />
 
         {checked && (
           <>
@@ -181,11 +183,8 @@ export function TrainingPage() {
               </p>
             </div>
             {reasoningFeedback && (
-              <div className="mt-3 rounded-xl border border-lumen-teal/20 bg-lumen-teal-soft/25 px-4 py-3">
-                <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">Люмен</p>
-                <p className="mt-1.5 text-sm leading-relaxed text-lumen-graphite-light">
-                  {reasoningFeedback}
-                </p>
+              <div className="mt-3">
+                <LumenReply text={reasoningFeedback} />
               </div>
             )}
           </>

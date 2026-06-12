@@ -6,9 +6,11 @@ import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { ProblemStepSolver } from '../components/ProblemStepSolver/ProblemStepSolver';
 import { VisualExplanationCard } from '../components/VisualExplanationCard/VisualExplanationCard';
 import { useProgress } from '../context/ProgressContext';
-import { getLumenMessage } from '../data/lumenMessages';
+import { getFinalAnswerFeedback } from '../data/lumenChatResponses';
 import { getProblemById } from '../data/problems';
 import { getTopicById } from '../data/topics';
+import { StudentInputBox } from '../components/StudentInputBox/StudentInputBox';
+import { LumenReply } from '../components/LumenReply/LumenReply';
 import type { ErrorType, NextStepRecommendationData } from '../types';
 
 export function ProblemPage() {
@@ -28,7 +30,7 @@ export function ProblemPage() {
   const problem = problemId ? getProblemById(problemId) : undefined;
   const topic = problem ? getTopicById(problem.topicId) : undefined;
   const [studentAnswer, setStudentAnswer] = useState('');
-  const [answerChecked, setAnswerChecked] = useState(false);
+  const [answerFeedback, setAnswerFeedback] = useState<string | null>(null);
   const [allStepsDone, setAllStepsDone] = useState(false);
   const [recommendation, setRecommendation] = useState<NextStepRecommendationData | null>(
     null,
@@ -82,13 +84,12 @@ export function ProblemPage() {
   }
 
   function handleCheckFinalAnswer() {
-    setAnswerChecked(true);
+    const match =
+      studentAnswer.trim().length > 0 &&
+      (problem.correctAnswer.toLowerCase().includes(studentAnswer.trim().toLowerCase()) ||
+        studentAnswer.trim().toLowerCase().includes(problem.correctAnswer.toLowerCase().slice(0, 3)));
+    setAnswerFeedback(getFinalAnswerFeedback(studentAnswer, match));
   }
-
-  const answerMatch =
-    studentAnswer.trim().length > 0 &&
-    (problem.correctAnswer.toLowerCase().includes(studentAnswer.trim().toLowerCase()) ||
-      studentAnswer.trim().toLowerCase().includes(problem.correctAnswer.toLowerCase().slice(0, 3)));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -145,33 +146,22 @@ export function ProblemPage() {
         </div>
 
         <div className="mt-6 rounded-xl border border-dashed border-lumen-silver-light bg-lumen-bg px-4 py-4">
-          <label htmlFor="student-answer" className="text-xs font-medium text-lumen-silver">
-            Твой ответ
-          </label>
-          <input
-            id="student-answer"
-            type="text"
-            value={studentAnswer}
-            onChange={(e) => {
-              setStudentAnswer(e.target.value);
-              setAnswerChecked(false);
-            }}
+          <StudentInputBox
+            label="Твой ответ"
             placeholder="Запиши ответ и единицы измерения"
-            className="mt-2 w-full rounded-xl border border-lumen-silver-light bg-lumen-surface px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20"
+            buttonText="Проверить"
+            value={studentAnswer}
+            onChange={(value) => {
+              setStudentAnswer(value);
+              setAnswerFeedback(null);
+            }}
+            onSubmit={handleCheckFinalAnswer}
+            id="student-answer"
           />
-          <button
-            type="button"
-            onClick={handleCheckFinalAnswer}
-            className="lumen-btn-secondary mt-3 text-sm"
-          >
-            Проверить ответ
-          </button>
-          {answerChecked && (
-            <p className={`mt-3 text-sm ${answerMatch ? 'text-lumen-teal' : 'text-lumen-graphite-light'}`}>
-              {answerMatch
-                ? getLumenMessage('correct-answer')
-                : getLumenMessage('wrong-answer')}
-            </p>
+          {answerFeedback && (
+            <div className="mt-4">
+              <LumenReply text={answerFeedback} />
+            </div>
           )}
         </div>
       </section>

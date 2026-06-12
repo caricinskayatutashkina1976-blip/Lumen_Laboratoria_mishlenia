@@ -14,6 +14,8 @@ import {
   saveHomeworkDraft,
   type HomeworkDraft,
 } from '../../utils/homeworkStorage';
+import { StudentInputBox } from '../StudentInputBox/StudentInputBox';
+import { LumenReply } from '../LumenReply/LumenReply';
 
 interface HomeworkStepSolverProps {
   condition: string;
@@ -178,32 +180,29 @@ export function HomeworkStepSolver({
               {getStepQuestion(type, activeStep)}
             </p>
 
-            <textarea
+            <StudentInputBox
+              label="Мой ответ"
+              placeholder="Напиши свой ответ…"
+              buttonText="Проверить шаг"
+              multiline
+              rows={3}
               value={currentInput}
-              onChange={(e) => {
-                setCurrentInput(e.target.value);
+              onChange={(value) => {
+                setCurrentInput(value);
                 setCheckState('idle');
                 setFeedback('');
               }}
-              placeholder="Напиши свой ответ…"
-              rows={3}
-              className="mt-4 w-full rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3 text-sm text-lumen-graphite outline-none transition-colors focus:border-lumen-teal/50 focus:ring-2 focus:ring-lumen-teal/20"
+              onSubmit={handleCheck}
+              id={`homework-step-${activeStep}`}
+              submitOnEnter={false}
             />
 
             {feedback && (
-              <div
-                className={`mt-4 rounded-xl border px-4 py-3 ${
-                  checkState === 'accepted'
-                    ? 'border-lumen-teal/30 bg-lumen-teal-soft/40'
-                    : 'border-lumen-blue/20 bg-lumen-blue-soft/25'
-                }`}
-              >
-                <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">
-                  Люмен
-                </p>
-                <p className="mt-1.5 text-sm leading-relaxed text-lumen-graphite-light">
-                  {feedback}
-                </p>
+              <div className="mt-4">
+                <LumenReply
+                  text={feedback}
+                  variant={checkState === 'accepted' ? 'success' : 'default'}
+                />
               </div>
             )}
 
@@ -221,9 +220,6 @@ export function HomeworkStepSolver({
             )}
 
             <div className="mt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={handleCheck} className="lumen-btn-primary text-sm">
-                Проверить шаг
-              </button>
               <button type="button" onClick={handleShowHint} className="lumen-btn-secondary text-sm">
                 Подсказка
               </button>

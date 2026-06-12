@@ -86,3 +86,36 @@ export function getTrainingExplanationResponse(explanation: string): string | nu
   if (!explanation.trim()) return null;
   return 'Хорошо, ты объяснил ход мысли. Важно не только выбрать ответ, но и понять почему.';
 }
+
+export function getStepTextAnswerFeedback(
+  answer: string,
+  result: 'empty' | 'short' | 'exact' | 'close' | 'wrong',
+): string {
+  switch (result) {
+    case 'empty':
+      return 'Сначала попробуй написать ответ. Даже короткий ответ поможет понять, что уже ясно.';
+    case 'short':
+      return 'Попробуй добавить чуть больше: что ты нашёл и почему.';
+    case 'exact':
+    case 'close':
+      return 'Смысл верный. Теперь проверь, похож ли ответ на правду.';
+    case 'wrong':
+      return 'Похоже, здесь нужно ещё раз посмотреть на условие. Давай вернёмся к нужному шагу.';
+    default:
+      return getGeneralLumenResponse(answer);
+  }
+}
+
+export function getFinalAnswerFeedback(answer: string, isMatch: boolean): string {
+  const trimmed = answer.trim();
+  if (!trimmed) {
+    return 'Сначала попробуй написать ответ. Даже короткий ответ поможет понять, что уже ясно.';
+  }
+  if (trimmed.length < 4) {
+    return 'Попробуй добавить чуть больше: что ты нашёл и почему.';
+  }
+  if (isMatch) {
+    return 'Смысл верный. Теперь проверь, похож ли ответ на правду.';
+  }
+  return 'Похоже, здесь нужно ещё раз посмотреть на условие. Давай вернёмся к нужному шагу.';
+}
