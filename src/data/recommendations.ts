@@ -152,9 +152,11 @@ export function getAdaptiveRecommendation(
   }
 
   if (options?.lastErrorType) {
+    const errorContext: 'after-fix' | 'after-problem' =
+      context === 'profile' || context === 'lesson' ? 'after-fix' : context;
     const fromError = getRecommendationFromError(
       options.lastErrorType,
-      context === 'profile' ? 'after-fix' : context,
+      errorContext,
       options.topicSlug,
     );
     if (fromError) {

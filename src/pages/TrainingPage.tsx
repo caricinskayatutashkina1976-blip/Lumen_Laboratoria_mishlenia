@@ -32,9 +32,11 @@ export function TrainingPage() {
     );
   }
 
-  const exercise = training.exercises[activeIndex];
-  const isLast = activeIndex === training.exercises.length - 1;
+  const session = training;
+  const exercise = session.exercises[activeIndex];
+  const isLast = activeIndex === session.exercises.length - 1;
   const isCorrect = selected === exercise.correctAnswer;
+  const postRecommendation = getAdaptiveRecommendation(progress.errorStats, 'after-problem');
 
   function handleCheck() {
     if (!selected) return;
@@ -47,7 +49,7 @@ export function TrainingPage() {
 
   function handleNext() {
     if (isLast) {
-      completeTraining(training.id, correctCount);
+      completeTraining(session.id, correctCount);
       setFinished(true);
     } else {
       setActiveIndex((i) => i + 1);
@@ -57,8 +59,6 @@ export function TrainingPage() {
       setReasoningFeedback(null);
     }
   }
-
-  const postRecommendation = getAdaptiveRecommendation(progress.errorStats, 'after-problem');
 
   if (finished) {
     const passed = correctCount >= 2;
@@ -70,14 +70,14 @@ export function TrainingPage() {
 
         <section className="lumen-card mt-6 border-l-4 border-lumen-teal p-6 sm:p-8">
           <p className="lumen-section-label">Тренировка завершена</p>
-          <h1 className="mt-2 text-2xl font-bold text-lumen-graphite">{training.title}</h1>
+          <h1 className="mt-2 text-2xl font-bold text-lumen-graphite">{session.title}</h1>
           <p className="mt-4 text-sm leading-relaxed text-lumen-graphite-light sm:text-base">
             {passed
-              ? `Отлично. Верных ответов: ${correctCount} из ${training.exercises.length}. Навык укреплён.`
-              : `Верных ответов: ${correctCount} из ${training.exercises.length}. Можно пройти ещё раз — без спешки.`}
+              ? `Отлично. Верных ответов: ${correctCount} из ${session.exercises.length}. Навык укреплён.`
+              : `Верных ответов: ${correctCount} из ${session.exercises.length}. Можно пройти ещё раз — без спешки.`}
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
-            <Link to={`/training/${training.id}`} className="lumen-btn-secondary text-sm">
+            <Link to={`/training/${session.id}`} className="lumen-btn-secondary text-sm">
               Пройти ещё раз
             </Link>
             <Link to="/map" className="lumen-btn-primary text-sm">
@@ -102,22 +102,22 @@ export function TrainingPage() {
       <header className="mt-4 mb-6">
         <p className="lumen-section-label">Мини-тренировка</p>
         <h1 className="mt-2 text-2xl font-bold text-lumen-graphite sm:text-3xl">
-          {training.title}
+          {session.title}
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-lumen-graphite-light sm:text-base">
-          {training.intro}
+          {session.intro}
         </p>
       </header>
 
       <div className="mb-6">
         <div className="mb-1.5 flex justify-between text-xs text-lumen-silver">
-          <span>Задание {activeIndex + 1} из {training.exercises.length}</span>
+          <span>Задание {activeIndex + 1} из {session.exercises.length}</span>
           <span>Верно: {correctCount}</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-lumen-silver-light">
           <div
             className="h-full rounded-full bg-gradient-to-r from-lumen-blue to-lumen-teal transition-all"
-            style={{ width: `${((activeIndex + (checked ? 1 : 0)) / training.exercises.length) * 100}%` }}
+            style={{ width: `${((activeIndex + (checked ? 1 : 0)) / session.exercises.length) * 100}%` }}
           />
         </div>
       </div>

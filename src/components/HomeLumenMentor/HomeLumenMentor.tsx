@@ -40,11 +40,17 @@ export function HomeLumenMentor() {
     }
 
     const reply = getGeneralLumenResponse(text);
-    setMessages((prev) => [
-      ...prev,
-      { id: `s-${Date.now()}`, role: 'student', text },
-      { id: `l-${Date.now() + 1}`, role: 'lumen', text: reply },
-    ].slice(-5));
+    const studentMsg: ChatMessage = {
+      id: `s-${Date.now()}`,
+      role: 'student',
+      text,
+    };
+    const lumenMsg: ChatMessage = {
+      id: `l-${Date.now() + 1}`,
+      role: 'lumen',
+      text: reply,
+    };
+    setMessages((prev) => [...prev, studentMsg, lumenMsg].slice(-5));
     setQuestion('');
     setHint(null);
     setActiveAction(null);

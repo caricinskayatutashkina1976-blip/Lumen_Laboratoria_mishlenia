@@ -1,5 +1,4 @@
 import type { ProblemDraft } from './problemDraft';
-import type { TrainingSkill } from '../../types';
 
 function d(partial: ProblemDraft): ProblemDraft {
   return partial;

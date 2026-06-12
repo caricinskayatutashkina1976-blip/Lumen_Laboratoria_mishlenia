@@ -32,14 +32,13 @@ export function ProblemPage() {
   const [studentAnswer, setStudentAnswer] = useState('');
   const [answerFeedback, setAnswerFeedback] = useState<string | null>(null);
   const [allStepsDone, setAllStepsDone] = useState(false);
-  const [recommendation, setRecommendation] = useState<NextStepRecommendationData | null>(
-    null,
-  );
+  const [recommendation, setRecommendation] = useState<NextStepRecommendationData | null>(null);
   const [usedHint, setUsedHint] = useState(false);
 
   useEffect(() => {
     if (problem) startProblemSession(problem.id);
   }, [problem, startProblemSession]);
+
   if (!problem) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-12 text-center">
@@ -51,21 +50,29 @@ export function ProblemPage() {
     );
   }
 
+  const currentProblem = problem;
+
+  const answerMatch =
+    studentAnswer.trim().length > 0 &&
+    (currentProblem.correctAnswer.toLowerCase().includes(studentAnswer.trim().toLowerCase()) ||
+      studentAnswer
+        .trim()
+        .toLowerCase()
+        .includes(currentProblem.correctAnswer.toLowerCase().slice(0, 3)));
+
   function handleStepComplete(stepId: number) {
-    trackProblemStep(problem!.id, stepId);
+    trackProblemStep(currentProblem.id, stepId);
     if (stepId === 3) unlockAchievement('found-main');
     if (stepId === 1) unlockAchievement('see-question');
   }
 
   function handleAllComplete() {
-    finishProblemSession(problem!.id, usedHint);
-    solveProblem(problem!.id, problem!.topicId);
+    finishProblemSession(currentProblem.id, usedHint);
+    solveProblem(currentProblem.id, currentProblem.topicId);
     unlockAchievement('understand-not-memorize');
     if (!usedHint) unlockAchievement('solved-no-hint');
     setAllStepsDone(true);
-    setRecommendation(
-      getLumenRecommendation('after-problem', { topicSlug: topic?.slug }),
-    );
+    setRecommendation(getLumenRecommendation('after-problem', { topicSlug: topic?.slug }));
   }
 
   function handleSelfFix(errorType: ErrorType) {
@@ -80,15 +87,11 @@ export function ProblemPage() {
 
   function handleStepError(errorType: ErrorType) {
     recordStepError(errorType);
-    trackProblemError(problem!.id);
+    trackProblemError(currentProblem.id);
   }
 
   function handleCheckFinalAnswer() {
-    const match =
-      studentAnswer.trim().length > 0 &&
-      (problem.correctAnswer.toLowerCase().includes(studentAnswer.trim().toLowerCase()) ||
-        studentAnswer.trim().toLowerCase().includes(problem.correctAnswer.toLowerCase().slice(0, 3)));
-    setAnswerFeedback(getFinalAnswerFeedback(studentAnswer, match));
+    setAnswerFeedback(getFinalAnswerFeedback(studentAnswer, answerMatch));
   }
 
   return (
@@ -106,7 +109,7 @@ export function ProblemPage() {
           <div>
             <p className="lumen-section-label">{topic?.title ?? 'Задача'}</p>
             <h1 className="mt-2 text-2xl font-bold text-lumen-graphite sm:text-3xl">
-              {problem.title}
+              {currentProblem.title}
             </h1>
           </div>
         </div>
@@ -115,25 +118,23 @@ export function ProblemPage() {
       <section className="mb-8 lumen-card p-5 sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-lg bg-lumen-teal-soft px-2 py-0.5 text-xs font-medium text-lumen-teal">
-            {problem.lifeContext}
+            {currentProblem.lifeContext}
           </span>
           <span className="rounded-lg bg-lumen-bg px-2 py-0.5 text-xs text-lumen-silver">
-            {problem.difficulty}
+            {currentProblem.difficulty}
           </span>
         </div>
 
-        <p className="mt-4 text-xs font-medium uppercase tracking-wider text-lumen-silver">
-          Условие
-        </p>
+        <p className="mt-4 text-xs font-medium uppercase tracking-wider text-lumen-silver">Условие</p>
         <p className="mt-3 text-base leading-relaxed text-lumen-graphite sm:text-lg">
-          {problem.problemText}
+          {currentProblem.problemText}
         </p>
 
-        {problem.hints.length > 0 && (
+        {currentProblem.hints.length > 0 && (
           <div className="mt-4 rounded-xl border border-lumen-blue/15 bg-lumen-blue-soft/20 px-4 py-3">
             <p className="text-xs font-medium text-lumen-blue">Подсказки перед решением</p>
             <ul className="mt-2 space-y-1 text-sm text-lumen-graphite-light">
-              {problem.hints.map((hint) => (
+              {currentProblem.hints.map((hint) => (
                 <li key={hint}>• {hint}</li>
               ))}
             </ul>
@@ -142,7 +143,7 @@ export function ProblemPage() {
 
         <div className="mt-4 rounded-xl border border-lumen-silver-light bg-lumen-bg px-4 py-3">
           <p className="text-xs font-medium text-lumen-silver">Частая ошибка</p>
-          <p className="mt-1 text-sm text-lumen-graphite-light">{problem.commonMistake}</p>
+          <p className="mt-1 text-sm text-lumen-graphite-light">{currentProblem.commonMistake}</p>
         </div>
 
         <div className="mt-6 rounded-xl border border-dashed border-lumen-silver-light bg-lumen-bg px-4 py-4">
@@ -167,29 +168,29 @@ export function ProblemPage() {
       </section>
 
       <div className="mb-8">
-        <VisualExplanationCard visualType={problem.visualType} topicId={problem.topicId} />
+        <VisualExplanationCard visualType={currentProblem.visualType} topicId={currentProblem.topicId} />
       </div>
 
       <div className="mb-8">
         <ProblemLumenChat
           context={{
-            title: problem.title,
-            problemText: problem.problemText,
-            lifeContext: problem.lifeContext,
-            commonMistake: problem.commonMistake,
+            title: currentProblem.title,
+            problemText: currentProblem.problemText,
+            lifeContext: currentProblem.lifeContext,
+            commonMistake: currentProblem.commonMistake,
           }}
         />
       </div>
 
       <ProblemStepSolver
-        steps={problem.steps}
+        steps={currentProblem.steps}
         onStepComplete={handleStepComplete}
         onAllComplete={handleAllComplete}
         onStepError={handleStepError}
         onSelfFix={handleSelfFix}
         onHintUsed={() => {
           setUsedHint(true);
-          trackProblemHint(problem.id);
+          trackProblemHint(currentProblem.id);
         }}
       />
 
@@ -202,7 +203,7 @@ export function ProblemPage() {
       <div className="mt-8 rounded-xl border border-lumen-teal/20 bg-lumen-teal-soft/30 px-5 py-4">
         <p className="text-xs font-medium text-lumen-teal">Эталонный ответ</p>
         {allStepsDone || answerMatch ? (
-          <p className="mt-1 font-semibold text-lumen-graphite">{problem.correctAnswer}</p>
+          <p className="mt-1 font-semibold text-lumen-graphite">{currentProblem.correctAnswer}</p>
         ) : (
           <>
             <p className="mt-1 text-sm text-lumen-graphite-light">

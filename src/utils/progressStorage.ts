@@ -142,7 +142,7 @@ export function completeLesson(
   lessonId: string,
   topicId: string,
   progress: StoredProgress,
-  topicIds: string[],
+  _topicIds: string[],
 ): StoredProgress {
   const completedLessons = progress.completedLessons.includes(lessonId)
     ? progress.completedLessons
@@ -165,7 +165,7 @@ export function solveProblem(
   problemId: string,
   topicId: string,
   progress: StoredProgress,
-  topicIds: string[],
+  _topicIds: string[],
   increment = 20,
 ): StoredProgress {
   const solvedProblems = progress.solvedProblems.includes(problemId)
