@@ -231,15 +231,11 @@ export function HomePage() {
       <div className="mb-10">
 
         <LumenAssistant
-
           greeting="Выбери, чем помочь — объясню проще, покажу пример или разберём по шагам."
-
           compact
-
           showAvatarLabel={false}
-          showQuestionInput
+          showInput={true}
           showHomeworkButton
-
         />
 
       </div>
