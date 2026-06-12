@@ -9,6 +9,7 @@ import {
   getStepSimple,
   HOMEWORK_STEP_TITLES,
 } from '../../data/homeworkSteps';
+import { getConfidenceHint, getVerificationStepQuestions, verifyHomeworkCondition } from '../../data/homeworkVerifier';
 import {
   clearHomeworkDraft,
   saveHomeworkDraft,
@@ -48,6 +49,7 @@ export function HomeworkStepSolver({
 
   const totalSteps = HOMEWORK_STEP_TITLES.length;
   const allDone = activeStep >= totalSteps;
+  const verification = verifyHomeworkCondition(condition, type);
 
   useEffect(() => {
     if (allDone) return;
@@ -67,7 +69,7 @@ export function HomeworkStepSolver({
   }
 
   function handleCheck() {
-    const evaluation = evaluateHomeworkStepAnswer(currentInput, activeStep);
+    const evaluation = evaluateHomeworkStepAnswer(currentInput, activeStep, condition, type);
     setFeedback(evaluation.message);
     setShowHint(false);
     setShowSimple(false);
@@ -129,8 +131,18 @@ export function HomeworkStepSolver({
   return (
     <section className="space-y-6">
       <div className="lumen-card overflow-hidden border-l-4 border-lumen-teal p-5 sm:p-6">
-        <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">Тип задачи</p>
-        <p className="mt-2 text-lg font-semibold text-lumen-graphite">{typeLabel}</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-lumen-teal">Тип задачи</p>
+            <p className="mt-2 text-lg font-semibold text-lumen-graphite">{typeLabel}</p>
+          </div>
+          <span className="rounded-lg border border-lumen-teal/30 bg-lumen-teal-soft px-2.5 py-1 text-xs font-medium text-lumen-teal">
+            {verification.confidenceLabel}
+          </span>
+        </div>
+        <p className="mt-3 text-sm leading-relaxed text-lumen-graphite-light">
+          {getConfidenceHint(verification.confidence)}
+        </p>
       </div>
 
       <div className="mb-2">
@@ -179,6 +191,14 @@ export function HomeworkStepSolver({
             <p className="mt-3 text-sm font-medium text-lumen-graphite">
               {getStepQuestion(type, activeStep)}
             </p>
+
+            {activeStep === 6 && (
+              <ul className="mt-3 list-inside list-disc space-y-1 text-sm text-lumen-graphite-light">
+                {getVerificationStepQuestions().map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ul>
+            )}
 
             <StudentInputBox
               label="Мой ответ"
@@ -263,7 +283,7 @@ export function HomeworkSummary({ condition, typeLabel, answers, onNewTask }: Ho
         Разбор завершён
       </p>
       <h2 className="mt-2 text-xl font-bold text-lumen-graphite sm:text-2xl">
-        Ты не просто получил ответ. Ты разобрал задачу по шагам.
+        Ты разобрал задачу по шагам. Перепроверь итог сам или с учителем.
       </h2>
 
       <div className="mt-6 space-y-4">
@@ -306,8 +326,8 @@ export function HomeworkSummary({ condition, typeLabel, answers, onNewTask }: Ho
             {answers[6] || '—'}
           </p>
           <p className="mt-2 text-sm text-lumen-graphite-light">
-            Напоминание: всегда спрашивай себя — похож ли ответ на правду? Можно ли проверить
-            другим способом?
+            Давай проверим ответ ещё раз: подходит ли он к вопросу задачи и не потеряли ли мы
+            данные? Сравни с учебником или спроси учителя.
           </p>
         </div>
 

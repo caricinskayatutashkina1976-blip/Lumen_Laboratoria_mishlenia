@@ -1,4 +1,17 @@
-import type { HomeworkType } from './homeworkAnalyzer';
+/**
+ * Оценка шагов домашки — осторожный режим.
+ * В пользовательских задачах не подтверждаем ответ без точной проверки.
+ * Лучше попросить проверить рассуждение, чем дать неверное решение.
+ */
+import type { HomeworkType } from './homeworkTypes';
+import {
+  evaluateSolutionStep,
+  evaluateVerificationStep,
+  getCautiousAcceptMessage,
+  getNoConfirmAnswerMessage,
+  isConfidentPhrase,
+  looksLikeFinalAnswerOnly,
+} from './homeworkVerifier';
 
 export const HOMEWORK_STEP_TITLES = [
   'О чём задача?',
@@ -6,8 +19,8 @@ export const HOMEWORK_STEP_TITLES = [
   'Что нужно найти?',
   'Какие числа помогут?',
   'Какое действие может подойти?',
-  'Попробуй записать решение',
-  'Проверь ответ',
+  'Решение',
+  'Проверяем ответ',
 ] as const;
 
 export type HomeworkStepResult =
@@ -71,8 +84,8 @@ const STEP_QUESTIONS: Record<HomeworkType, string[]> = {
     'Что нужно найти? Сформулируй главный вопрос.',
     'Какие числа из условия помогут ответить на вопрос?',
     'Какое действие может подойти: сложение, вычитание или умножение? Почему?',
-    'Запиши ход решения по шагам. Пока без спешки.',
-    'Как можно проверить ответ? Похож ли он на правду?',
+    'Запиши ход решения по шагам — опиши действия, а не только итоговое число.',
+    'Проверь ответ по пунктам: отвечает ли на вопрос? Все ли данные учтены? Подходят ли единицы? Можно ли прикинуть устно? Не слишком ли большой или маленький ответ?',
   ],
   motion: [
     'О чём задача? Кто или что движется и куда?',
@@ -80,8 +93,8 @@ const STEP_QUESTIONS: Record<HomeworkType, string[]> = {
     'Что нужно найти: расстояние, время или скорость?',
     'Какие числа из условия относятся к скорости, времени или расстоянию?',
     'Какое действие подходит? Вспомни: расстояние = скорость × время.',
-    'Запиши решение: формулу и подстановку чисел.',
-    'Проверь: подставь ответ обратно — сходится ли?',
+    'Запиши решение: формулу и подстановку чисел — опиши действия.',
+    'Проверь: ответ отвечает на вопрос? Данные учтены? Единицы подходят? Можно прикинуть устно?',
   ],
   percent: [
     'О чём задача? Проценты, скидка или доля от числа?',
@@ -89,8 +102,8 @@ const STEP_QUESTIONS: Record<HomeworkType, string[]> = {
     'Что нужно найти: скидку, итоговую цену или исходное число?',
     'Какие числа и знак % есть в условии?',
     'Какое действие подходит, чтобы найти часть от 100%?',
-    'Запиши ход решения, не пропуская шаги.',
-    'Проверь: ответ меньше или больше исходного числа — это логично?',
+    'Запиши ход решения, не пропуская шаги — не только итог.',
+    'Проверь: ответ логичен? Единицы верны? Можно прикинуть устно?',
   ],
   area: [
     'О чём задача? Какая фигура или предмет с размерами?',
@@ -98,8 +111,8 @@ const STEP_QUESTIONS: Record<HomeworkType, string[]> = {
     'Что нужно найти: площадь, периметр или сторону?',
     'Какие размеры даны в условии?',
     'Какое действие подходит для площади или периметра?',
-    'Запиши решение с формулой и числами.',
-    'Проверь: единицы измерения и размер ответа имеют смысл?',
+    'Запиши решение с формулой и числами — опиши ход.',
+    'Проверь: единицы измерения и размер ответа имеют смысл? Ответ отвечает на вопрос?',
   ],
   text: [
     'Своими словами: о чём эта задача?',
@@ -107,8 +120,8 @@ const STEP_QUESTIONS: Record<HomeworkType, string[]> = {
     'Что нужно найти? Сформулируй главный вопрос.',
     'Какие числа помогут ответить на вопрос?',
     'Какое действие ты бы выбрал и почему?',
-    'Запиши решение по шагам.',
-    'Проверь ответ: он похож на правду?',
+    'Запиши решение по шагам — опиши действия, не только число.',
+    'Проверь ответ: он отвечает на вопрос? Все данные учтены? Можно прикинуть устно?',
   ],
 };
 
@@ -209,13 +222,13 @@ const STEP_SIMPLE: Record<HomeworkType, string[]> = {
 };
 
 const ACCEPT_MESSAGES: Record<number, string> = {
-  0: 'Хорошо. Ты понял, о чём задача — это важный первый шаг.',
-  1: 'Верно. Данные собраны — теперь можно искать главный вопрос.',
-  2: 'Отлично. Главный вопрос найден — теперь ясно, к чему идём.',
-  3: 'Хорошо. Числа отмечены — они помогут выбрать действие.',
-  4: 'Логично. Действие выбрано осознанно — можно переходить к решению.',
-  5: 'Молодец. Ты записал ход решения — это главное, а не готовый ответ.',
-  6: 'Отлично. Проверка — важный финальный шаг. Ты разобрал задачу сам.',
+  0: getCautiousAcceptMessage(0),
+  1: getCautiousAcceptMessage(1),
+  2: getCautiousAcceptMessage(2),
+  3: getCautiousAcceptMessage(3),
+  4: getCautiousAcceptMessage(4),
+  5: getCautiousAcceptMessage(5),
+  6: getCautiousAcceptMessage(6),
 };
 
 export function getStepQuestion(type: HomeworkType, stepIndex: number): string {
@@ -237,6 +250,8 @@ export function getAcceptMessage(stepIndex: number): string {
 export function evaluateHomeworkStepAnswer(
   answer: string,
   stepIndex: number,
+  condition?: string,
+  type?: HomeworkType,
 ): HomeworkStepEvaluation {
   const trimmed = answer.trim();
   const norm = normalize(trimmed);
@@ -249,8 +264,35 @@ export function evaluateHomeworkStepAnswer(
     return { result: 'cheat', message: getCheatBlockMessage() };
   }
 
+  if (looksLikeFinalAnswerOnly(trimmed) && stepIndex < 5) {
+    return { result: 'cheat', message: getNoConfirmAnswerMessage() };
+  }
+
+  if (isConfidentPhrase(trimmed)) {
+    return {
+      result: 'short',
+      message: 'Я не буду просто подтверждать ответ. Опиши ход решения своими словами.',
+    };
+  }
+
   if (UNCERTAIN_PATTERN.test(norm)) {
     return { result: 'uncertain', message: getUncertainAnswerMessage() };
+  }
+
+  if (stepIndex === 5 && condition && type) {
+    const solution = evaluateSolutionStep(trimmed, condition, type);
+    return {
+      result: solution.accepted ? 'accepted' : 'short',
+      message: solution.message,
+    };
+  }
+
+  if (stepIndex === 6 && condition && type) {
+    const verification = evaluateVerificationStep(trimmed, condition, type);
+    return {
+      result: verification.accepted ? 'accepted' : 'short',
+      message: verification.message,
+    };
   }
 
   const minLength = stepIndex >= 5 ? 5 : 8;

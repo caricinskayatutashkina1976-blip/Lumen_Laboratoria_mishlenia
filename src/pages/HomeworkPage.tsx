@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { HomeworkStepSolver, HomeworkSummary } from '../components/HomeworkStepSolver/HomeworkStepSolver';
+import { HomeworkReasoningCheck } from '../components/HomeworkReasoningCheck/HomeworkReasoningCheck';
 import { HomeworkVisual } from '../components/HomeworkVisual/HomeworkVisual';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { LumenReply } from '../components/LumenReply/LumenReply';
@@ -99,13 +100,18 @@ export function HomeworkPage() {
               Помощь с домашним заданием
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-lumen-graphite-light sm:text-base">
-              Вставь условие задачи. Люмен поможет разобрать её по шагам, но не будет просто
-              выдавать ответ.
+              Я помогу разобрать задачу по шагам. Если задача введена вручную, я могу ошибиться в
+              вычислениях — обязательно проверь итоговый ответ.
             </p>
             <blockquote className="mt-4 rounded-xl border border-lumen-teal/20 bg-lumen-teal-soft/30 px-4 py-3">
               <p className="text-sm leading-relaxed text-lumen-graphite-light">
                 Люмен не решает задачу вместо тебя. Он помогает понять условие, найти данные,
-                выбрать действие и проверить ответ.
+                выбрать действие и проверить рассуждение — но не подтверждает ответ без точной
+                проверки.
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-lumen-graphite-light">
+                Давай проверим ответ ещё раз: подходит ли он к вопросу задачи и не потеряли ли мы
+                данные?
               </p>
             </blockquote>
           </div>
@@ -164,6 +170,7 @@ export function HomeworkPage() {
             }
             onComplete={handleComplete}
           />
+          <HomeworkReasoningCheck condition={condition} type={breakdown.type} />
           <button type="button" onClick={handleNewTask} className="lumen-btn-secondary text-sm">
             Начать другую задачу
           </button>

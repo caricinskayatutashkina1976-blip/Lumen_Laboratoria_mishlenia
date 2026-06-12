@@ -1,4 +1,7 @@
-export type HomeworkType = 'purchases' | 'motion' | 'percent' | 'area' | 'text';
+import { verifyHomeworkCondition, type HomeworkVerification } from './homeworkVerifier';
+import type { HomeworkType } from './homeworkTypes';
+
+export type { HomeworkType, HomeworkVerification };
 
 export interface HomeworkStep {
   title: string;
@@ -29,20 +32,25 @@ export function detectHomeworkType(text: string): HomeworkType {
   if (/площад|периметр|длин|ширин|комнат|коврик|огород/.test(t)) {
     return 'area';
   }
-  if (/купил|купил|цена|рубл|магазин|потратил|стоимост/.test(t)) {
+  if (/купил|цена|рубл|магазин|потратил|стоимост/.test(t)) {
     return 'purchases';
   }
 
   return 'text';
 }
 
-const TYPE_HINTS: Record<HomeworkType, { about: string; known: string; find: string; action: string; firstStep: string }> = {
+const TYPE_HINTS: Record<
+  HomeworkType,
+  { about: string; known: string; find: string; action: string; firstStep: string }
+> = {
   purchases: {
     about: 'Похоже, это задача про покупки и деньги.',
     known: 'Найди в условии: что купили, сколько штук и какая цена. Выпиши каждое число отдельно.',
     find: 'Определи главный вопрос: сколько всего потратили, сколько осталось или сколько стоит одна вещь?',
-    action: 'Если одна цена повторяется несколько раз — подумай про умножение. Если нужно собрать разные покупки — про сложение. Если узнать остаток — про вычитание.',
-    firstStep: 'Попробуй сначала посчитать стоимость одной группы покупок, например всех одинаковых товаров.',
+    action:
+      'Если одна цена повторяется несколько раз — подумай про умножение. Если нужно собрать разные покупки — про сложение.',
+    firstStep:
+      'Попробуй сначала посчитать стоимость одной группы покупок, например всех одинаковых товаров.',
   },
   motion: {
     about: 'Похоже, это задача на движение.',
@@ -86,13 +94,16 @@ export function buildHomeworkBreakdown(text: string): {
   typeLabel: string;
   steps: HomeworkStep[];
   guidingQuestions: string[];
+  verification: HomeworkVerification;
 } {
   const type = detectHomeworkType(text);
   const hints = TYPE_HINTS[type];
+  const verification = verifyHomeworkCondition(text, type);
 
   return {
     type,
     typeLabel: TYPE_LABELS[type],
+    verification,
     steps: [
       { title: 'Сначала найдём, о чём задача', content: hints.about },
       { title: 'Теперь выпишем, что известно', content: hints.known },
