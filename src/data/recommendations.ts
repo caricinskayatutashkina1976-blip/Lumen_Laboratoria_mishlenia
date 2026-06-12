@@ -1,5 +1,7 @@
 import type { ErrorStats, ErrorType, NextStepRecommendationData, StoredProgress, TrainingSkill } from '../types';
+import { getGrade6PrerequisiteRecommendation } from './grade6Readiness';
 import { getEasyProblemForSkill } from './problems';
+import { getTopicBySlug } from './topics';
 
 const ERROR_TO_SKILL: Partial<Record<ErrorType, TrainingSkill>> = {
   'missed-main-question': 'find-question',
@@ -136,6 +138,19 @@ export function getAdaptiveRecommendation(
     progress?: StoredProgress;
   },
 ): NextStepRecommendationData {
+  if (context === 'lesson' && options?.topicSlug && options?.progress) {
+    const topic = getTopicBySlug(options.topicSlug);
+    if (topic?.grade === 6) {
+      const getTopicProgress = (id: string) => options.progress!.topicProgress[id] ?? 0;
+      const grade6Rec = getGrade6PrerequisiteRecommendation(
+        options.topicSlug,
+        getTopicProgress,
+        options.progress,
+      );
+      if (grade6Rec) return grade6Rec;
+    }
+  }
+
   if (options?.lastErrorType) {
     const fromError = getRecommendationFromError(
       options.lastErrorType,

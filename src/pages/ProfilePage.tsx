@@ -5,6 +5,7 @@ import { LumenAssistant } from '../components/LumenAssistant/LumenAssistant';
 import { LumenAvatar } from '../components/LumenAvatar/LumenAvatar';
 import { useAchievementsWithProgress, useProgress } from '../context/ProgressContext';
 import { CurriculumPath } from '../components/CurriculumPath/CurriculumPath';
+import { Grade6ReadinessProfile } from '../components/Grade6ReadinessProfile/Grade6ReadinessProfile';
 import { filterTopics, getSortedTopics } from '../data/topics';
 
 export function ProfilePage() {
@@ -146,6 +147,10 @@ export function ProfilePage() {
           </Link>
         </section>
       </div>
+
+      <section className="mb-8">
+        <Grade6ReadinessProfile progress={progress} />
+      </section>
 
       <section className="mb-8 lumen-card border-l-4 border-lumen-blue p-5 sm:p-6">
         <p className="lumen-section-label">С чем сейчас тренируемся</p>
